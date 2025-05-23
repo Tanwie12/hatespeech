@@ -215,7 +215,7 @@ export default function ReportsPage() {
 
   // Fetch results on mount
   useEffect(() => {
-    fetchResults().catch(error => {
+    fetchResults().catch(() => {
       toast.error('Failed to fetch analysis results');
     });
   }, [fetchResults]);
@@ -241,7 +241,7 @@ export default function ReportsPage() {
           }
         },
         visualizations: Object.entries(visualizations)
-          .filter(([_, enabled]) => enabled)
+          .filter(([key, enabled]) => enabled)
           .map(([type]) => type),
         results: results.filter(tweet => tweet.confidence >= confidenceThreshold[0])
           .map(tweet => ({
@@ -255,28 +255,23 @@ export default function ReportsPage() {
       // Generate file based on selected format
       let blob: Blob;
       let extension: string;
-      let mimeType: string;
 
       switch (selectedFormat) {
         case 'pdf':
           blob = generatePDF(reportContent);
           extension = 'pdf';
-          mimeType = 'application/pdf';
           break;
         case 'excel':
           blob = generateExcel(reportContent);
           extension = 'xlsx';
-          mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
           break;
         case 'csv':
           blob = generateCSV(reportContent);
           extension = 'csv';
-          mimeType = 'text/csv';
           break;
         case 'json':
           blob = generateJSON(reportContent);
           extension = 'json';
-          mimeType = 'application/json';
           break;
         default:
           throw new Error('Unsupported format');
@@ -303,8 +298,8 @@ export default function ReportsPage() {
 
       setReports(prev => [newReport, ...prev]);
       toast.success('Report generated successfully');
-    } catch (error) {
-      console.error('Report generation error:', error);
+    } catch (err) {
+      console.error('Report generation error:', err);
       toast.error('Failed to generate report');
     }
   };

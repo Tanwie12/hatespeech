@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
   // Initial data load
   useEffect(() => {
-    refreshAllData().catch(error => {
+    refreshAllData().catch(() => {
       toast.error('Failed to load dashboard data');
     });
   }, [refreshAllData]);
@@ -39,7 +39,7 @@ export default function DashboardPage() {
       // Check if the results have changed
       if (state.results !== prevState?.results || 
           state.uploadedFiles !== prevState?.uploadedFiles) {
-        refreshAllData().catch(error => {
+        refreshAllData().catch(() => {
           toast.error('Failed to refresh dashboard data');
         });
       }
@@ -52,7 +52,7 @@ export default function DashboardPage() {
     try {
       await refreshAllData();
       toast.success('Dashboard data refreshed');
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh dashboard data');
     }
   };

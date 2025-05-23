@@ -10,15 +10,19 @@ import Breadcrumb from '@/components/layout/breadcrumb';
 import { toast } from 'sonner';
 import { useAnalysisStore } from '@/stores/analysis-store';
 import { useDashboardStore } from '@/stores/dashboard-store';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function DataInputPage() {
   const [dragActive, setDragActive] = useState(false);
+  const [inputText, setInputText] = useState('');
+  
   const { 
     uploadFile, 
     deleteFile, 
     clearHistory,
     uploadedFiles, 
-    isUploading
+    isUploading,
+    analyzeTweet
   } = useAnalysisStore();
   
   const handleDrag = (e: React.DragEvent) => {
@@ -86,6 +90,21 @@ export default function DataInputPage() {
     }
   };
 
+  const handleAnalyze = async () => {
+    if (!inputText.trim()) {
+      toast.error('Please enter some text to analyze');
+      return;
+    }
+
+    try {
+      await analyzeTweet(inputText);
+      setInputText('');
+      toast.success('Analysis completed successfully');
+    } catch {
+      toast.error('Failed to analyze text');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <Breadcrumb />
@@ -94,6 +113,25 @@ export default function DataInputPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Data Input</h1>
         <p className="text-gray-600 mt-1">Upload and manage your data for analysis</p>
       </div>
+      
+      {/* Text Analysis Section */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <h2 className="text-lg font-medium mb-4">Text Analysis</h2>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Enter text to analyze..."
+              value={inputText}
+              onChange={(e:any) => setInputText(e.target.value)}
+              rows={4}
+              className="w-full"
+            />
+            <Button onClick={handleAnalyze} disabled={isUploading || !inputText.trim()}>
+              Analyze Text
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Upload Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
