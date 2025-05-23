@@ -8,7 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { RefreshCcw, Download, MoreVertical } from 'lucide-react';
+import { RefreshCcw, Download, MoreVertical, Trash2 } from 'lucide-react';
 import Breadcrumb from '@/components/layout/breadcrumb';
 import { useAnalysisStore } from '@/stores/analysis-store';
 import { toast } from 'sonner';
@@ -21,11 +21,12 @@ export default function AnalysisPage() {
     classificationCounts,
     averageConfidence,
     isLoading,
-    fetchResults
+    fetchResults,
+    clearResults
   } = useAnalysisStore();
 
   // Local state for filters
-  const [confidenceThreshold, setConfidenceThreshold] = useState([70]);
+  const [confidenceThreshold, setConfidenceThreshold] = useState([0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [classifications, setClassifications] = useState({
     hate: true,
@@ -97,6 +98,17 @@ export default function AnalysisPage() {
       document.body.removeChild(link);
     } catch {
       toast.error('Failed to export results');
+    }
+  };
+
+  const handleDeleteResults = async () => {
+    if (window.confirm('Are you sure you want to delete all analysis results? This action cannot be undone.')) {
+      try {
+        await clearResults();
+        toast.success('All results deleted successfully');
+      } catch {
+        toast.error('Failed to delete results');
+      }
     }
   };
 
@@ -276,7 +288,19 @@ export default function AnalysisPage() {
                 disabled={isLoading || filteredResults.length === 0}
               >
                 <Download className="h-4 w-4" />
-                Export Results
+                Export Results ({filteredResults.length})
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                className="gap-2 bg-red-600 hover:bg-red-700 text-white transition-colors duration-200 
+                  shadow-sm hover:shadow-md active:shadow-sm focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                  disabled:bg-red-300 disabled:cursor-not-allowed disabled:shadow-none"
+                onClick={handleDeleteResults}
+                disabled={isLoading || totalAnalyzed === 0}
+              >
+                <Trash2 className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                Delete All
               </Button>
             </div>
           </div>
@@ -301,16 +325,22 @@ export default function AnalysisPage() {
                         Loading results...
                       </td>
                     </tr>
+                  ) : !results || results.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-gray-500">
+                        No analysis results available. Try analyzing some text or uploading a file.
+                      </td>
+                    </tr>
                   ) : filteredResults.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="py-8 text-center text-gray-500">
-                        No results found
+                        No results match your current filters. Try adjusting the confidence threshold or classification filters.
                       </td>
                     </tr>
                   ) : (
                     filteredResults.map((tweet) => (
-                      <tr key={tweet.id} className="border-b last:border-b-0">
-                        <td className="py-4 px-4 max-w-md">
+                      <tr key={tweet.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                        <td className="py-4 px-4">
                           <div className="line-clamp-2">{tweet.text}</div>
                         </td>
                         <td className="py-4 px-4">

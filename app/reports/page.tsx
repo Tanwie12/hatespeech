@@ -459,36 +459,68 @@ export default function ReportsPage() {
               {/* Output Format */}
               <div>
                 <h3 className="text-sm font-medium mb-3">Output Format</h3>
-                <div className="flex space-x-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button 
-                    variant="outline" 
+                    variant={selectedFormat === 'pdf' ? 'default' : 'outline'} 
                     size="sm"
                     onClick={() => setSelectedFormat('pdf')}
+                    className={`flex items-center justify-center gap-2 ${
+                      selectedFormat === 'pdf' ? 'bg-blue-600 text-white' : ''
+                    }`}
                   >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M7 18H17V16H7V18Z" fill="currentColor"/>
+                      <path d="M17 14H7V12H17V14Z" fill="currentColor"/>
+                      <path d="M7 10H11V8H7V10Z" fill="currentColor"/>
+                      <path fillRule="evenodd" clipRule="evenodd" d="M6 2C4.34315 2 3 3.34315 3 5V19C3 20.6569 4.34315 22 6 22H18C19.6569 22 21 20.6569 21 19V9C21 5.13401 17.866 2 14 2H6ZM6 4H13V9H19V19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V5C5 4.44772 5.44772 4 6 4ZM15 4.10002C16.6113 4.4271 17.9413 5.52906 18.584 7H15V4.10002Z" fill="currentColor"/>
+                    </svg>
                     PDF
                   </Button>
                   <Button 
-                    variant="outline" 
+                    variant={selectedFormat === 'csv' ? 'default' : 'outline'} 
                     size="sm"
                     onClick={() => setSelectedFormat('csv')}
+                    className={`flex items-center justify-center gap-2 ${
+                      selectedFormat === 'csv' ? 'bg-blue-600 text-white' : ''
+                    }`}
                   >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM12 17V15H8V13H12V11L16 14L12 17Z" fill="currentColor"/>
+                    </svg>
                     CSV
                   </Button>
                   <Button 
-                    variant="outline" 
+                    variant={selectedFormat === 'json' ? 'default' : 'outline'} 
                     size="sm"
                     onClick={() => setSelectedFormat('json')}
+                    className={`flex items-center justify-center gap-2 ${
+                      selectedFormat === 'json' ? 'bg-blue-600 text-white' : ''
+                    }`}
                   >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M4 2H20C21.1046 2 22 2.89543 22 4V20C22 21.1046 21.1046 22 20 22H4C2.89543 22 2 21.1046 2 20V4C2 2.89543 2.89543 2 4 2ZM4 4V20H20V4H4ZM8 7H6V9H8V7ZM10 7H18V9H10V7ZM6 11H8V13H6V11ZM18 11H10V13H18V11ZM8 15H6V17H8V15ZM10 15H18V17H10V15Z" fill="currentColor"/>
+                    </svg>
                     JSON
                   </Button>
                   <Button 
-                    variant="outline" 
+                    variant={selectedFormat === 'excel' ? 'default' : 'outline'} 
                     size="sm"
                     onClick={() => setSelectedFormat('excel')}
+                    className={`flex items-center justify-center gap-2 ${
+                      selectedFormat === 'excel' ? 'bg-blue-600 text-white' : ''
+                    }`}
                   >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M21.17 3H14V5H19V19H14V21H21.17C21.9 21 22.5 20.4 22.5 19.67V4.33C22.5 3.6 21.9 3 21.17 3Z" fill="currentColor"/>
+                      <path d="M15.17 7H8V9H13V15H8V17H15.17C15.9 17 16.5 16.4 16.5 15.67V8.33C16.5 7.6 15.9 7 15.17 7Z" fill="currentColor"/>
+                      <path d="M9.17 11H2V13H7V19H2V21H9.17C9.9 21 10.5 20.4 10.5 19.67V12.33C10.5 11.6 9.9 11 9.17 11Z" fill="currentColor"/>
+                    </svg>
                     Excel
                   </Button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Selected format: <span className="font-medium">{selectedFormat.toUpperCase()}</span>
+                </p>
               </div>
             </div>
           </div>

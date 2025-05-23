@@ -23,6 +23,9 @@ export interface UploadedFile {
   filename: string;
   uploadDate: string;
   status: 'completed' | 'processing' | 'error';
+  type: 'file' | 'text';
+  content?: string;
+  result?: AnalysisResult;
 }
 
 interface AnalysisState {
@@ -51,6 +54,7 @@ interface AnalysisState {
   fetchResults: () => Promise<void>;
   deleteFile: (id: string) => Promise<void>;
   clearHistory: () => void;
+  clearResults: () => Promise<void>;
 }
 
 export const useAnalysisStore = create<AnalysisState>((set, get) => ({
@@ -95,7 +99,8 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         id: Date.now().toString(),
         filename: file.name,
         uploadDate: new Date().toISOString(),
-        status: 'processing'
+        status: 'processing',
+        type: 'file'
       };
 
       set(state => ({
@@ -127,7 +132,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       });
 
       const result = await response.json();
-      console.log('API Response:', result); // Debug log
+      console.log('API Response:', result);
 
       if (!response.ok) {
         console.error('Response not OK:', response.status, result);
@@ -157,14 +162,39 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         timestamp: new Date().toISOString(),
       };
 
-      set(state => ({
-        results: [analysisResult, ...state.results],
-        totalAnalyzed: state.totalAnalyzed + 1,
-        classificationCounts: {
+      // Create a new history entry for the text analysis
+      const historyEntry: UploadedFile = {
+        id: analysisResult.id,
+        filename: 'Text Analysis',
+        uploadDate: analysisResult.timestamp,
+        status: 'completed',
+        type: 'text',
+        content: text.trim(),
+        result: analysisResult
+      };
+
+      set(state => {
+        // Calculate new total and classification counts
+        const newTotalAnalyzed = state.totalAnalyzed + 1;
+        const newClassificationCounts = {
           ...state.classificationCounts,
           [analysisResult.classification.toLowerCase()]: state.classificationCounts[analysisResult.classification.toLowerCase() as keyof typeof state.classificationCounts] + 1
-        }
-      }));
+        };
+
+        // Calculate new average confidence
+        const newAverageConfidence = (
+          (state.averageConfidence * state.totalAnalyzed + analysisResult.confidence) / 
+          newTotalAnalyzed
+        );
+
+        return {
+          results: [analysisResult, ...state.results],
+          uploadedFiles: [historyEntry, ...state.uploadedFiles],
+          totalAnalyzed: newTotalAnalyzed,
+          classificationCounts: newClassificationCounts,
+          averageConfidence: newAverageConfidence
+        };
+      });
 
       return analysisResult;
     } catch (error) {
@@ -248,5 +278,37 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
   clearHistory: () => {
     set({ uploadedFiles: [] });
+  },
+
+  clearResults: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      const response = await fetch(`${getApiUrl()}/api/results`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete results');
+      }
+
+      // Reset the store state
+      set({
+        results: [],
+        totalAnalyzed: 0,
+        classificationCounts: {
+          neutral: 0,
+          offensive: 0,
+          hate: 0
+        },
+        averageConfidence: 0
+      });
+
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to delete results' });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
   }
 })); 

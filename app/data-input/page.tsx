@@ -5,16 +5,23 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Info, Eye, Trash2 } from 'lucide-react';
+import { Upload, FileText, Info, Eye, Trash2, MessageSquare } from 'lucide-react';
 import Breadcrumb from '@/components/layout/breadcrumb';
 import { toast } from 'sonner';
-import { useAnalysisStore } from '@/stores/analysis-store';
+import { useAnalysisStore, type UploadedFile } from '@/stores/analysis-store';
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function DataInputPage() {
   const [dragActive, setDragActive] = useState(false);
   const [inputText, setInputText] = useState('');
+  const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
   
   const { 
     uploadFile, 
@@ -22,7 +29,8 @@ export default function DataInputPage() {
     clearHistory,
     uploadedFiles, 
     isUploading,
-    analyzeTweet
+    analyzeTweet,
+    isLoading
   } = useAnalysisStore();
   
   const handleDrag = (e: React.DragEvent) => {
@@ -105,6 +113,10 @@ export default function DataInputPage() {
     }
   };
 
+  const handleViewDetails = (file: UploadedFile) => {
+    setSelectedFile(file);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <Breadcrumb />
@@ -124,10 +136,46 @@ export default function DataInputPage() {
               value={inputText}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInputText(e.target.value)}
               rows={4}
-              className="w-full"
+              className="w-full min-h-[100px] p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 
+                focus:border-blue-500 transition-all duration-200 resize-none"
             />
-            <Button onClick={handleAnalyze} disabled={isUploading || !inputText.trim()}>
-              Analyze Text
+            <Button 
+              onClick={handleAnalyze} 
+              disabled={isLoading || !inputText.trim()}
+              className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 
+                text-white font-medium rounded-lg transition-all duration-200 
+                transform hover:scale-[1.02] active:scale-[0.98]
+                disabled:bg-blue-300 disabled:cursor-not-allowed disabled:transform-none
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                inline-flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <svg 
+                    className="w-5 h-5" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
+                  </svg>
+                  Analyze Text
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
@@ -247,7 +295,8 @@ export default function DataInputPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Filename</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Type</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Content</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Upload Date</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Status</th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-600">Actions</th>
@@ -256,18 +305,39 @@ export default function DataInputPage() {
               <tbody>
                 {uploadedFiles.map((file) => (
                   <tr key={file.id} className="border-b last:border-b-0">
-                    <td className="py-3 px-4">{file.filename}</td>
+                    <td className="py-3 px-4">
+                      {file.type === 'file' ? (
+                        <FileText className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <MessageSquare className="h-4 w-4 text-blue-500" />
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="line-clamp-1">
+                        {file.type === 'file' ? file.filename : file.content}
+                      </div>
+                    </td>
                     <td className="py-3 px-4">{new Date(file.uploadDate).toLocaleString()}</td>
                     <td className="py-3 px-4">
                       <StatusBadge status={file.status} />
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Eye className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleViewDetails(file)}
+                          className="hover:bg-gray-100"
+                        >
+                          <Eye className="h-4 w-4 text-gray-600" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleDeleteFile(file.id)}
+                          className="hover:bg-gray-100"
+                        >
+                          <Trash2 className="h-4 w-4 text-gray-600" />
                         </Button>
                       </div>
                     </td>
@@ -280,11 +350,68 @@ export default function DataInputPage() {
           <Card>
             <CardContent className="p-12 flex flex-col items-center justify-center text-center">
               <p className="text-gray-500 mb-2">No upload history available</p>
-              <p className="text-gray-400 text-sm">Uploaded files will appear here</p>
+              <p className="text-gray-400 text-sm">Uploaded files and analyzed text will appear here</p>
             </CardContent>
           </Card>
         )}
       </div>
+      
+      {/* Details Dialog */}
+      <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Analysis Details</DialogTitle>
+          </DialogHeader>
+          {selectedFile?.type === 'text' && selectedFile.result && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-1">Content</h4>
+                <p className="text-gray-600 text-sm">{selectedFile.content}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-1">Classification</h4>
+                <Badge 
+                  className={`
+                    ${selectedFile.result.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
+                      selectedFile.result.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
+                        'bg-red-100 text-red-800'} 
+                  `}
+                >
+                  {selectedFile.result.classification}
+                </Badge>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-1">Confidence</h4>
+                <p className="text-gray-600 text-sm">{selectedFile.result.confidence.toFixed(1)}%</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-1">Timestamp</h4>
+                <p className="text-gray-600 text-sm">
+                  {new Date(selectedFile.result.timestamp).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          )}
+          {selectedFile?.type === 'file' && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-1">Filename</h4>
+                <p className="text-gray-600 text-sm">{selectedFile.filename}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-1">Upload Date</h4>
+                <p className="text-gray-600 text-sm">
+                  {new Date(selectedFile.uploadDate).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-1">Status</h4>
+                <StatusBadge status={selectedFile.status} />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       
       {/* Action Buttons */}
       <div className="flex justify-end gap-3">
