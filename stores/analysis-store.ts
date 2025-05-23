@@ -9,7 +9,7 @@ interface APIResponse {
   }[];
 }
 
-interface AnalysisResult {
+export interface AnalysisResult {
   id: string;
   text: string;
   classification: 'Neutral' | 'Offensive' | 'Hate';

@@ -18,8 +18,7 @@ export default function DataInputPage() {
     deleteFile, 
     clearHistory,
     uploadedFiles, 
-    isUploading, 
-    error 
+    isUploading
   } = useAnalysisStore();
   
   const handleDrag = (e: React.DragEvent) => {

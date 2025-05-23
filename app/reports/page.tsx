@@ -2,30 +2,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { 
-  Download, Share, Trash2, ChevronLeft, ChevronRight,
-  Filter, Calendar, Search
+  Download, Share, Trash2, Calendar, Search, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Breadcrumb from '@/components/layout/breadcrumb';
 import { useAnalysisStore } from '@/stores/analysis-store';
 import { toast } from 'sonner';
 import { generatePDF, generateExcel, generateCSV, generateJSON } from '@/utils/report-generators';
 import { Badge } from '@/components/ui/badge';
+import type { AnalysisResult } from '@/stores/analysis-store';
+
+type ReportFormat = 'PDF' | 'Excel' | 'CSV' | 'JSON';
 
 interface ReportItem {
   id: string;
   name: string;
-  type: string;
+  type: 'Summary' | 'Detailed' | 'Trend';
   date: string;
   size: string;
-  format: string;
+  format: ReportFormat;
 }
 
 const ReportPreview = ({ 
@@ -42,7 +41,7 @@ const ReportPreview = ({
   dateRange: { start: string; end: string };
   confidenceThreshold: number[];
   visualizations: Record<string, boolean>;
-  results: any[];
+  results: AnalysisResult[];
   totalAnalyzed: number;
   classificationCounts: { neutral: number; offensive: number; hate: number };
   averageConfidence: number;
@@ -176,11 +175,11 @@ export default function ReportsPage() {
 
   // Local state
   const [confidenceThreshold, setConfidenceThreshold] = useState([70]);
-  const [selectedReportType, setSelectedReportType] = useState('summary');
+  const [selectedReportType, setSelectedReportType] = useState<'summary' | 'detailed'>('summary');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedFormat, setSelectedFormat] = useState('pdf');
+  const [selectedFormat, setSelectedFormat] = useState<Lowercase<ReportFormat>>('pdf');
   const [searchQuery, setSearchQuery] = useState('');
-  const [visualizations, setVisualizations] = useState({
+  const [visualizations, setVisualizations] = useState<Record<'distribution' | 'timeSeries' | 'wordCloud' | 'geographic', boolean>>({
     distribution: true,
     timeSeries: false,
     wordCloud: false,
@@ -299,7 +298,7 @@ export default function ReportsPage() {
         type: selectedReportType === 'summary' ? 'Summary' : 'Detailed',
         date: new Date().toISOString().split('T')[0],
         size: `${(blob.size / 1024).toFixed(1)} KB`,
-        format: selectedFormat.toUpperCase()
+        format: selectedFormat.toUpperCase() as ReportFormat
       };
 
       setReports(prev => [newReport, ...prev]);
@@ -465,28 +464,36 @@ export default function ReportsPage() {
               {/* Output Format */}
               <div>
                 <h3 className="text-sm font-medium mb-3">Output Format</h3>
-                <RadioGroup 
-                  value={selectedFormat} 
-                  onValueChange={setSelectedFormat}
-                  className="space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="pdf" id="pdf" />
-                    <Label htmlFor="pdf" className="text-sm">PDF</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="csv" id="csv" />
-                    <Label htmlFor="csv" className="text-sm">CSV</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="json" id="json" />
-                    <Label htmlFor="json" className="text-sm">JSON</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="excel" id="excel" />
-                    <Label htmlFor="excel" className="text-sm">Excel</Label>
-                  </div>
-                </RadioGroup>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedFormat('pdf')}
+                  >
+                    PDF
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedFormat('csv')}
+                  >
+                    CSV
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedFormat('json')}
+                  >
+                    JSON
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedFormat('excel')}
+                  >
+                    Excel
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

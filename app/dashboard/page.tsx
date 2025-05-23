@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { useAnalysisStore } from '@/stores/analysis-store';
-import type { UploadedFile } from '@/stores/analysis-store';
+
 import StatusCard from '@/components/dashboard/status-card';
 import ClassificationChart from '@/components/dashboard/classification-chart';
 import TrendChart from '@/components/dashboard/trend-chart';

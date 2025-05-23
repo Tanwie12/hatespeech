@@ -8,7 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { RefreshCcw, Download, FileText, MoreVertical } from 'lucide-react';
+import { RefreshCcw, Download, MoreVertical } from 'lucide-react';
 import Breadcrumb from '@/components/layout/breadcrumb';
 import { useAnalysisStore } from '@/stores/analysis-store';
 import { toast } from 'sonner';
@@ -316,16 +316,6 @@ export default function AnalysisPage() {
               >
                 <Download className="h-4 w-4" />
                 Export Results
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
-                onClick={handleGenerateReport}
-                disabled={isLoading || filteredResults.length === 0}
-              >
-                <FileText className="h-4 w-4" />
-                Generate Report
               </Button>
             </div>
           </div>
