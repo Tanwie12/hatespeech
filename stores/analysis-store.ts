@@ -121,19 +121,39 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ tweet: text.trim() })
       });
 
+      const result = await response.json();
+      console.log('API Response:', result); // Debug log
+
       if (!response.ok) {
-        throw new Error('Failed to analyze tweet');
+        console.error('Response not OK:', response.status, result);
+        throw new Error(result.error || 'Failed to analyze tweet');
       }
 
-      const result = await response.json();
+      // Handle the new response format where analysis results are in the analysis array
+      if (!result.analysis || !Array.isArray(result.analysis) || result.analysis.length === 0) {
+        console.error('Invalid or empty analysis array:', result);
+        throw new Error('Invalid response format: missing analysis data');
+      }
+
+      // Use the first analysis result
+      const prediction = result.analysis[0];
+
+      if (!prediction || !prediction.label || !prediction.score) {
+        console.error('Missing prediction data:', prediction);
+        throw new Error('Invalid prediction data: missing required fields');
+      }
+
       const analysisResult: AnalysisResult = {
         id: Date.now().toString(),
-        text,
-        ...result,
+        text: result.tweet,
+        classification: prediction.label === 'non-offensive' ? 'Neutral' : 
+                       prediction.label === 'offensive' ? 'Offensive' : 'Hate',
+        confidence: parseFloat(prediction.score) * 100,
         timestamp: new Date().toISOString(),
       };
 
@@ -148,6 +168,10 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
       return analysisResult;
     } catch (error) {
+      console.error('Analysis error details:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
       set({ error: error instanceof Error ? error.message : 'Failed to analyze tweet' });
       throw error;
     } finally {
