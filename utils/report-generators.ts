@@ -1,6 +1,6 @@
 import { utils, writeFile } from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import type { UserOptions } from 'jspdf-autotable';
 
 interface ReportContent {
@@ -29,7 +29,16 @@ interface ReportContent {
   }>;
 }
 
+// Extend jsPDF type to include autoTable
+interface jsPDFWithAutoTable extends jsPDF {
+  autoTable: (options: UserOptions) => void;
+  lastAutoTable: {
+    finalY: number;
+  };
+}
+
 export const generatePDF = (content: ReportContent): Blob => {
+  // Create new document
   const doc = new jsPDF();
   
   // Add title
@@ -46,38 +55,38 @@ export const generatePDF = (content: ReportContent): Blob => {
   doc.setFontSize(14);
   doc.text('Summary', 20, 50);
   
-  doc.setFontSize(10);
-  const summaryData = [
-    ['Total Analyzed', content.summary.totalAnalyzed.toString()],
-    ['Average Confidence', content.summary.averageConfidence],
-    ['Neutral', content.summary.distribution.neutral],
-    ['Offensive', content.summary.distribution.offensive],
-    ['Hate Speech', content.summary.distribution.hate]
-  ];
-  
-  (doc as any).autoTable({
+  // Create summary table
+  autoTable(doc, {
     startY: 55,
     head: [['Metric', 'Value']],
-    body: summaryData,
+    body: [
+      ['Total Analyzed', content.summary.totalAnalyzed.toString()],
+      ['Average Confidence', content.summary.averageConfidence],
+      ['Neutral', content.summary.distribution.neutral],
+      ['Offensive', content.summary.distribution.offensive],
+      ['Hate Speech', content.summary.distribution.hate]
+    ],
     theme: 'grid',
     headStyles: { fillColor: [66, 139, 202] }
   });
+
+  // Get the last table's Y position
+  const finalY = (doc as any).lastAutoTable.finalY;
   
-  // Add results table
+  // Add results section
   doc.setFontSize(14);
-  doc.text('Analysis Results', 20, (doc as any).lastAutoTable.finalY + 20);
+  doc.text('Analysis Results', 20, finalY + 20);
   
-  const resultsData = content.results.map(result => [
-    result.text.substring(0, 50) + (result.text.length > 50 ? '...' : ''),
-    result.classification,
-    result.confidence,
-    result.timestamp
-  ]);
-  
-  (doc as any).autoTable({
-    startY: (doc as any).lastAutoTable.finalY + 25,
+  // Create results table
+  autoTable(doc, {
+    startY: finalY + 25,
     head: [['Text', 'Classification', 'Confidence', 'Timestamp']],
-    body: resultsData,
+    body: content.results.map(result => [
+      result.text.substring(0, 50) + (result.text.length > 50 ? '...' : ''),
+      result.classification,
+      result.confidence,
+      result.timestamp
+    ]),
     theme: 'grid',
     headStyles: { fillColor: [66, 139, 202] },
     columnStyles: {
