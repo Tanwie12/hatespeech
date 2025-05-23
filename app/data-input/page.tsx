@@ -85,7 +85,7 @@ export default function DataInputPage() {
     try {
       await deleteFile(id);
       toast.success('File deleted successfully');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to delete file');
     }
   };
@@ -122,7 +122,7 @@ export default function DataInputPage() {
             <Textarea
               placeholder="Enter text to analyze..."
               value={inputText}
-              onChange={(e:any) => setInputText(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInputText(e.target.value)}
               rows={4}
               className="w-full"
             />

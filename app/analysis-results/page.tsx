@@ -35,7 +35,7 @@ export default function AnalysisPage() {
 
   // Fetch results on mount and after file uploads
   useEffect(() => {
-    fetchResults().catch(error => {
+    fetchResults().catch(_error => {
       toast.error('Failed to fetch analysis results');
     });
   }, [fetchResults]);
@@ -44,7 +44,7 @@ export default function AnalysisPage() {
   useEffect(() => {
     const unsubscribe = useAnalysisStore.subscribe((state, prevState) => {
       if (state.uploadedFiles !== prevState?.uploadedFiles) {
-        fetchResults().catch(error => {
+        fetchResults().catch(_error => {
           toast.error('Failed to fetch updated results');
         });
       }
@@ -97,45 +97,6 @@ export default function AnalysisPage() {
       document.body.removeChild(link);
     } catch (error) {
       toast.error('Failed to export results');
-    }
-  };
-
-  const handleGenerateReport = () => {
-    try {
-      // Create report content
-      const reportContent = {
-        title: 'Hate Speech Analysis Report',
-        generatedAt: new Date().toLocaleString(),
-        summary: {
-          totalAnalyzed,
-          averageConfidence: averageConfidence.toFixed(1) + '%',
-          distribution: {
-            neutral: ((classificationCounts.neutral / totalAnalyzed) * 100).toFixed(1) + '%',
-            offensive: ((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1) + '%',
-            hate: ((classificationCounts.hate / totalAnalyzed) * 100).toFixed(1) + '%'
-          }
-        },
-        results: filteredResults.map(tweet => ({
-          text: tweet.text,
-          classification: tweet.classification,
-          confidence: tweet.confidence.toFixed(1) + '%',
-          timestamp: new Date(tweet.timestamp).toLocaleString()
-        }))
-      };
-
-      // Convert to JSON and download
-      const blob = new Blob([JSON.stringify(reportContent, null, 2)], { type: 'application/json' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `analysis-report-${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success('Report generated successfully');
-    } catch (error) {
-      toast.error('Failed to generate report');
     }
   };
 
