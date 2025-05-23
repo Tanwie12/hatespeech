@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getApiUrl } from '@/config/api';
 
 interface APIResponse {
   success: boolean;
@@ -76,7 +77,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://127.0.0.1:5000/api/upload-dataset', {
+      const response = await fetch(`${getApiUrl()}/api/upload-dataset`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -85,7 +86,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
         throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
 
@@ -117,7 +117,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const response = await fetch('http://127.0.0.1:5000/api/analyze', {
+      const response = await fetch(`${getApiUrl()}/api/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const response = await fetch('http://127.0.0.1:5000/api/results');
+      const response = await fetch(`${getApiUrl()}/api/results`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch results');
@@ -173,12 +173,12 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
       // Transform API data to match our frontend format
       const results: AnalysisResult[] = apiResponse.data.map(item => ({
-        id: Math.random().toString(36).substr(2, 9), // Generate random ID for now
+        id: Math.random().toString(36).substr(2, 9),
         text: item.Tweet,
         classification: item.Prediction === 'non-offensive' ? 'Neutral' : 
                        item.Prediction === 'offensive' ? 'Offensive' : 'Hate',
         confidence: parseFloat(item.Score) * 100,
-        timestamp: new Date().toISOString() // Using current time as API doesn't provide timestamp
+        timestamp: new Date().toISOString()
       }));
       
       // Calculate statistics
