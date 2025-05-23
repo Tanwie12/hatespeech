@@ -241,7 +241,7 @@ export default function ReportsPage() {
           }
         },
         visualizations: Object.entries(visualizations)
-          .filter(([_, enabled]) => enabled)
+          .filter(([, enabled]) => enabled)
           .map(([type]) => type),
         results: results.filter(tweet => tweet.confidence >= confidenceThreshold[0])
           .map(tweet => ({
