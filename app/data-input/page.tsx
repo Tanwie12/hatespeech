@@ -85,7 +85,7 @@ export default function DataInputPage() {
     try {
       await deleteFile(id);
       toast.success('File deleted successfully');
-    } catch (_error) {
+    } catch {
       toast.error('Failed to delete file');
     }
   };

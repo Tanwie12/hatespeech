@@ -35,7 +35,7 @@ export default function AnalysisPage() {
 
   // Fetch results on mount and after file uploads
   useEffect(() => {
-    fetchResults().catch(_error => {
+    fetchResults().catch(() => {
       toast.error('Failed to fetch analysis results');
     });
   }, [fetchResults]);
@@ -44,7 +44,7 @@ export default function AnalysisPage() {
   useEffect(() => {
     const unsubscribe = useAnalysisStore.subscribe((state, prevState) => {
       if (state.uploadedFiles !== prevState?.uploadedFiles) {
-        fetchResults().catch(_error => {
+        fetchResults().catch(() => {
           toast.error('Failed to fetch updated results');
         });
       }
@@ -67,7 +67,7 @@ export default function AnalysisPage() {
     try {
       await fetchResults();
       toast.success('Results refreshed successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh results');
     }
   };
@@ -95,7 +95,7 @@ export default function AnalysisPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (error) {
+    } catch {
       toast.error('Failed to export results');
     }
   };
