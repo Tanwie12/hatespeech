@@ -1,6 +1,7 @@
 // stores/dashboard-store.ts
 import { create } from 'zustand';
 import { DashboardData, TrendData, ActivityItem } from '@/types';
+import { useAnalysisStore } from './analysis-store';
 
 interface DashboardState {
   dashboardData: DashboardData | null;
@@ -24,27 +25,41 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   fetchDashboardData: async () => {
     try {
       set({ isLoading: true, error: null });
-      // In a real app, this would be an API call
-      // Simulating API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Get data from analysis store
+      await useAnalysisStore.getState().fetchResults();
+      const analysisState = useAnalysisStore.getState();
+      
+      const totalTweets = analysisState.totalAnalyzed;
+      const { neutral, offensive, hate } = analysisState.classificationCounts;
+      
+      // Calculate percentages
+      const hatePercent = Math.round((hate / totalTweets) * 100);
+      const offensivePercent = Math.round((offensive / totalTweets) * 100);
+      const neutralPercent = Math.round((neutral / totalTweets) * 100);
+      
+      // Determine risk level based on hate speech percentage
+      let riskLevel = 'Low Risk';
+      if (hatePercent > 20) riskLevel = 'High Risk';
+      else if (hatePercent > 10) riskLevel = 'Medium Risk';
       
       const dashboardData: DashboardData = {
-        totalTweets: 24567,
-        tweetChange: 2.5,
-        hatePercent: 12,
-        offensivePercent: 25,
-        riskLevel: 'Medium Risk',
+        totalTweets,
+        tweetChange: 0, // We can implement this later by tracking historical data
+        hatePercent,
+        offensivePercent,
+        riskLevel,
         classification: {
-          neutral: 60,
-          offensive: 25,
-          hateSpeed: 15
+          neutral: neutralPercent,
+          offensive: offensivePercent,
+          hateSpeed: hatePercent
         },
         systemStatus: {
           operational: true,
           lastUpdated: new Date().toISOString(),
-          version: '1.2.3'
+          version: '1.0.0'
         },
-        version: '1.2.3'
+        version: '1.0.0'
       };
       
       set({ dashboardData, isLoading: false });
@@ -59,14 +74,38 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   fetchTrendsData: async () => {
     try {
       set({ isLoading: true, error: null });
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 600));
       
+      // Get data from analysis store
+      const { results } = useAnalysisStore.getState();
+      
+      // Group results by hour and calculate percentages
+      const hourlyData = results.reduce((acc: { [key: string]: { neutral: number; offensive: number; hate: number; total: number } }, tweet) => {
+        const hour = new Date(tweet.timestamp).getHours();
+        if (!acc[hour]) {
+          acc[hour] = { neutral: 0, offensive: 0, hate: 0, total: 0 };
+        }
+        
+        acc[hour][tweet.classification.toLowerCase() as 'neutral' | 'offensive' | 'hate']++;
+        acc[hour].total++;
+        return acc;
+      }, {});
+      
+      // Convert to percentages for the last 7 hours
+      const currentHour = new Date().getHours();
       const trendsData: TrendData = {
-        neutral: [58, 62, 65, 62, 60, 63, 62],
-        offensive: [22, 24, 22, 24, 25, 28, 25],
-        hate: [8, 10, 12, 10, 8, 10, 12]
+        neutral: [],
+        offensive: [],
+        hate: []
       };
+      
+      for (let i = 6; i >= 0; i--) {
+        const hour = (currentHour - i + 24) % 24;
+        const hourData = hourlyData[hour] || { neutral: 0, offensive: 0, hate: 0, total: 1 };
+        
+        trendsData.neutral.push(Math.round((hourData.neutral / hourData.total) * 100));
+        trendsData.offensive.push(Math.round((hourData.offensive / hourData.total) * 100));
+        trendsData.hate.push(Math.round((hourData.hate / hourData.total) * 100));
+      }
       
       set({ trendsData, isLoading: false });
     } catch (error) {
@@ -80,46 +119,20 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   fetchActivityData: async () => {
     try {
       set({ isLoading: true, error: null });
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const activityData: ActivityItem[] = [
-        {
-          id: '1',
-          content: 'Great product, highly recommended! #happy',
-          classification: 'Neutral',
-          confidence: 98,
-          time: new Date(Date.now() - 2 * 60 * 1000).toISOString()
-        },
-        {
-          id: '2',
-          content: 'This service is terrible, waste of money',
-          classification: 'Offensive',
-          confidence: 87,
-          time: new Date(Date.now() - 5 * 60 * 1000).toISOString()
-        },
-        {
-          id: '3',
-          content: 'Amazing customer support team!',
-          classification: 'Neutral',
-          confidence: 95,
-          time: new Date(Date.now() - 10 * 60 * 1000).toISOString()
-        },
-        {
-          id: '4',
-          content: 'Never using this again. Horrible experience',
-          classification: 'Offensive',
-          confidence: 89,
-          time: new Date(Date.now() - 15 * 60 * 1000).toISOString()
-        },
-        {
-          id: '5',
-          content: 'Just what I needed, perfect solution',
-          classification: 'Neutral',
-          confidence: 96,
-          time: new Date(Date.now() - 20 * 60 * 1000).toISOString()
-        }
-      ];
+      // Get latest results from analysis store
+      const { results } = useAnalysisStore.getState();
+      
+      // Get the 5 most recent activities
+      const activityData: ActivityItem[] = results
+        .slice(0, 5)
+        .map(result => ({
+          id: result.id,
+          content: result.text,
+          classification: result.classification === 'Hate' ? 'Hate Speech' : result.classification,
+          confidence: result.confidence,
+          time: result.timestamp
+        }));
       
       set({ activityData, isLoading: false });
     } catch (error) {
@@ -131,12 +144,24 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   },
   
   refreshAllData: async () => {
-    set({ isLoading: true });
-    await Promise.all([
-      useDashboardStore.getState().fetchDashboardData(),
-      useDashboardStore.getState().fetchTrendsData(),
-      useDashboardStore.getState().fetchActivityData()
-    ]);
-    set({ isLoading: false });
+    try {
+      set({ isLoading: true });
+      
+      // First refresh the analysis store data
+      await useAnalysisStore.getState().fetchResults();
+      
+      // Then update all dashboard data
+      await Promise.all([
+        useDashboardStore.getState().fetchDashboardData(),
+        useDashboardStore.getState().fetchTrendsData(),
+        useDashboardStore.getState().fetchActivityData()
+      ]);
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to refresh data',
+      });
+    } finally {
+      set({ isLoading: false });
+    }
   }
 }));

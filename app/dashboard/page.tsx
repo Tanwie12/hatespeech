@@ -3,6 +3,8 @@
 
 import { useEffect } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
+import { useAnalysisStore } from '@/stores/analysis-store';
+import type { UploadedFile } from '@/stores/analysis-store';
 import StatusCard from '@/components/dashboard/status-card';
 import ClassificationChart from '@/components/dashboard/classification-chart';
 import TrendChart from '@/components/dashboard/trend-chart';
@@ -12,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReloadIcon, DownloadIcon, ArrowRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const { 
@@ -19,21 +22,39 @@ export default function DashboardPage() {
     trendsData, 
     activityData, 
     isLoading, 
-    fetchDashboardData, 
-    fetchTrendsData, 
-    fetchActivityData,
     refreshAllData
   } = useDashboardStore();
 
+  // Initial data load
   useEffect(() => {
-    // Load all data when component mounts
-    fetchDashboardData();
-    fetchTrendsData();
-    fetchActivityData();
-  }, [fetchDashboardData, fetchTrendsData, fetchActivityData]);
+    refreshAllData().catch(error => {
+      toast.error('Failed to load dashboard data');
+    });
+  }, [refreshAllData]);
+
+  // Subscribe to analysis store changes
+  useEffect(() => {
+    // Subscribe to any changes in the analysis store
+    const unsubscribe = useAnalysisStore.subscribe((state, prevState) => {
+      // Check if the results have changed
+      if (state.results !== prevState?.results || 
+          state.uploadedFiles !== prevState?.uploadedFiles) {
+        refreshAllData().catch(error => {
+          toast.error('Failed to refresh dashboard data');
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [refreshAllData]);
 
   const handleRefresh = async () => {
-    await refreshAllData();
+    try {
+      await refreshAllData();
+      toast.success('Dashboard data refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh dashboard data');
+    }
   };
 
   return (

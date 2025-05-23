@@ -1,7 +1,7 @@
 // app/analysis/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -10,63 +10,135 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { RefreshCcw, Download, FileText, MoreVertical } from 'lucide-react';
 import Breadcrumb from '@/components/layout/breadcrumb';
-
-interface TweetData {
-  id: string;
-  content: string;
-  classification: 'Neutral' | 'Offensive' | 'Hate';
-  confidence: number;
-  timestamp: string;
-}
+import { useAnalysisStore } from '@/stores/analysis-store';
+import { toast } from 'sonner';
 
 export default function AnalysisPage() {
-  const [tweets, setTweets] = useState<TweetData[]>([
-    {
-      id: '1',
-      content: 'This is a sample tweet that demonstrates the layout and design of our analysis results table. The content is truncated if it exceeds two lines.',
-      classification: 'Neutral',
-      confidence: 92,
-      timestamp: '2024-02-10 14:30'
-    },
-    {
-      id: '2',
-      content: 'Another example tweet showing how different classifications are displayed with appropriate color-coding and styling',
-      classification: 'Offensive',
-      confidence: 87,
-      timestamp: '2024-02-10 14:25'
-    },
-    {
-      id: '3',
-      content: 'A third tweet example to demonstrate the consistent layout and spacing of our table rows with varying content.',
-      classification: 'Hate',
-      confidence: 95,
-      timestamp: '2024-02-10 14:20'
-    },
-    {
-      id: '4',
-      content: 'This tweet shows how the table handles longer content and maintains its structure while displaying all necessary information.',
-      classification: 'Neutral',
-      confidence: 88,
-      timestamp: '2024-02-10 14:15'
-    },
-    {
-      id: '5',
-      content: 'Example tweet demonstrating the layout and formatting of our analysis results with proper spacing.',
-      classification: 'Offensive',
-      confidence: 91,
-      timestamp: '2024-02-10 14:10'
-    }
-  ]);
-  
+  // Store state
+  const { 
+    results,
+    totalAnalyzed,
+    classificationCounts,
+    averageConfidence,
+    isLoading,
+    fetchResults
+  } = useAnalysisStore();
+
+  // Local state for filters
   const [confidenceThreshold, setConfidenceThreshold] = useState([70]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [classifications, setClassifications] = useState({
-    hateSpeed: true,
+    hate: true,
     offensive: true,
     neutral: true
   });
-  
-  const totalTweets = 2547;
-  
+
+  // Fetch results on mount and after file uploads
+  useEffect(() => {
+    fetchResults().catch(error => {
+      toast.error('Failed to fetch analysis results');
+    });
+  }, [fetchResults]);
+
+  // Subscribe to file uploads
+  useEffect(() => {
+    const unsubscribe = useAnalysisStore.subscribe((state, prevState) => {
+      if (state.uploadedFiles !== prevState?.uploadedFiles) {
+        fetchResults().catch(error => {
+          toast.error('Failed to fetch updated results');
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [fetchResults]);
+
+  // Filter results based on user selections
+  const filteredResults = results.filter(tweet => {
+    const meetsConfidence = tweet.confidence >= confidenceThreshold[0];
+    const meetsClassification = classifications[tweet.classification.toLowerCase() as keyof typeof classifications];
+    const meetsSearch = searchQuery === '' || 
+      tweet.text.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return meetsConfidence && meetsClassification && meetsSearch;
+  });
+
+  const handleRefresh = async () => {
+    try {
+      await fetchResults();
+      toast.success('Results refreshed successfully');
+    } catch (error) {
+      toast.error('Failed to refresh results');
+    }
+  };
+
+  const handleExportResults = () => {
+    try {
+      // Convert results to CSV format
+      const headers = ['Tweet', 'Classification', 'Confidence', 'Timestamp'];
+      const csvContent = [
+        headers.join(','),
+        ...filteredResults.map(tweet => [
+          `"${tweet.text.replace(/"/g, '""')}"`, // Escape quotes in text
+          tweet.classification,
+          tweet.confidence.toFixed(1),
+          new Date(tweet.timestamp).toLocaleString()
+        ].join(','))
+      ].join('\n');
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `analysis-results-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      toast.error('Failed to export results');
+    }
+  };
+
+  const handleGenerateReport = () => {
+    try {
+      // Create report content
+      const reportContent = {
+        title: 'Hate Speech Analysis Report',
+        generatedAt: new Date().toLocaleString(),
+        summary: {
+          totalAnalyzed,
+          averageConfidence: averageConfidence.toFixed(1) + '%',
+          distribution: {
+            neutral: ((classificationCounts.neutral / totalAnalyzed) * 100).toFixed(1) + '%',
+            offensive: ((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1) + '%',
+            hate: ((classificationCounts.hate / totalAnalyzed) * 100).toFixed(1) + '%'
+          }
+        },
+        results: filteredResults.map(tweet => ({
+          text: tweet.text,
+          classification: tweet.classification,
+          confidence: tweet.confidence.toFixed(1) + '%',
+          timestamp: new Date(tweet.timestamp).toLocaleString()
+        }))
+      };
+
+      // Convert to JSON and download
+      const blob = new Blob([JSON.stringify(reportContent, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `analysis-report-${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Report generated successfully');
+    } catch (error) {
+      toast.error('Failed to generate report');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <Breadcrumb />
@@ -78,7 +150,7 @@ export default function AnalysisPage() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-sm font-medium text-gray-500 mb-1">Total Tweets</h2>
-            <div className="text-3xl font-bold mb-1">2,547</div>
+            <div className="text-3xl font-bold mb-1">{totalAnalyzed.toLocaleString()}</div>
             <div className="text-xs text-gray-500">Tweets Processed</div>
           </CardContent>
         </Card>
@@ -87,13 +159,54 @@ export default function AnalysisPage() {
           <CardContent className="p-6 flex justify-between items-center">
             <div>
               <h2 className="text-sm font-medium text-gray-500 mb-1">Classification Distribution</h2>
+              <div className="space-y-1 mt-2">
+                <div className="text-xs">
+                  <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                  Neutral: {((classificationCounts.neutral / totalAnalyzed) * 100).toFixed(1)}%
+                </div>
+                <div className="text-xs">
+                  <span className="inline-block w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
+                  Offensive: {((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1)}%
+                </div>
+                <div className="text-xs">
+                  <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                  Hate: {((classificationCounts.hate / totalAnalyzed) * 100).toFixed(1)}%
+                </div>
+              </div>
             </div>
             <div className="w-24 h-24">
               {/* Donut chart would go here - simplified for this example */}
               <svg viewBox="0 0 100 100" className="w-full h-full">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#2db5a9" strokeWidth="20" strokeDasharray="70 100" strokeDashoffset="25" />
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#e77d55" strokeWidth="20" strokeDasharray="40 100" strokeDashoffset="-5" />
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#2c3e50" strokeWidth="20" strokeDasharray="20 100" strokeDashoffset="-45" />
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="40" 
+                  fill="none" 
+                  stroke="#22c55e" 
+                  strokeWidth="20" 
+                  strokeDasharray={`${(classificationCounts.neutral / totalAnalyzed) * 100} 100`} 
+                  strokeDashoffset="25" 
+                />
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="40" 
+                  fill="none" 
+                  stroke="#f97316" 
+                  strokeWidth="20" 
+                  strokeDasharray={`${(classificationCounts.offensive / totalAnalyzed) * 100} 100`} 
+                  strokeDashoffset={`${-((classificationCounts.neutral / totalAnalyzed) * 100) + 25}`}
+                />
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="40" 
+                  fill="none" 
+                  stroke="#ef4444" 
+                  strokeWidth="20" 
+                  strokeDasharray={`${(classificationCounts.hate / totalAnalyzed) * 100} 100`} 
+                  strokeDashoffset={`${-(((classificationCounts.neutral + classificationCounts.offensive) / totalAnalyzed) * 100) + 25}`}
+                />
                 <circle cx="50" cy="50" r="30" fill="white" />
               </svg>
             </div>
@@ -103,7 +216,7 @@ export default function AnalysisPage() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-sm font-medium text-gray-500 mb-1">Average Confidence</h2>
-            <div className="text-3xl font-bold mb-1">87.6%</div>
+            <div className="text-3xl font-bold mb-1">{averageConfidence.toFixed(1)}%</div>
             <div className="text-xs text-gray-500">Confidence Score</div>
           </CardContent>
         </Card>
@@ -117,7 +230,13 @@ export default function AnalysisPage() {
             
             <div className="space-y-6">
               <div>
-                <Input type="text" placeholder="Search tweets..." className="w-full" />
+                <Input 
+                  type="text" 
+                  placeholder="Search tweets..." 
+                  className="w-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
               
               <div>
@@ -126,9 +245,9 @@ export default function AnalysisPage() {
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="hate-speech" 
-                      checked={classifications.hateSpeed}
-                      onCheckedChange={(checked:any) => 
-                        setClassifications({...classifications, hateSpeed: checked === true})
+                      checked={classifications.hate}
+                      onCheckedChange={(checked) => 
+                        setClassifications({...classifications, hate: checked === true})
                       } 
                     />
                     <label htmlFor="hate-speech" className="text-sm">Hate Speech</label>
@@ -137,7 +256,7 @@ export default function AnalysisPage() {
                     <Checkbox 
                       id="offensive" 
                       checked={classifications.offensive}
-                      onCheckedChange={(checked:any) => 
+                      onCheckedChange={(checked) => 
                         setClassifications({...classifications, offensive: checked === true})
                       } 
                     />
@@ -147,48 +266,11 @@ export default function AnalysisPage() {
                     <Checkbox 
                       id="neutral" 
                       checked={classifications.neutral}
-                      onCheckedChange={(checked:any) => 
+                      onCheckedChange={(checked) => 
                         setClassifications({...classifications, neutral: checked === true})
                       } 
                     />
                     <label htmlFor="neutral" className="text-sm">Neutral</label>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-3">Date Range</h3>
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input 
-                      type="text" 
-                      placeholder="yyyy / mm / dd" 
-                      className="w-full pl-3 pr-10"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-                        <rect x="3" y="6" width="18" height="15" rx="2" stroke="currentColor" strokeWidth="2" />
-                        <path d="M3 10H21" stroke="currentColor" strokeWidth="2" />
-                        <path d="M8 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M16 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <div className="relative">
-                    <Input 
-                      type="text" 
-                      placeholder="yyyy / mm / dd" 
-                      className="w-full pl-3 pr-10"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-                        <rect x="3" y="6" width="18" height="15" rx="2" stroke="currentColor" strokeWidth="2" />
-                        <path d="M3 10H21" stroke="currentColor" strokeWidth="2" />
-                        <path d="M8 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M16 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -202,9 +284,10 @@ export default function AnalysisPage() {
                   step={1}
                   className="mb-6"
                 />
+                <div className="text-sm text-gray-500 text-center">
+                  {confidenceThreshold}% or higher
+                </div>
               </div>
-              
-              <Button className="w-full">Apply Filters</Button>
             </div>
           </CardContent>
         </Card>
@@ -212,17 +295,35 @@ export default function AnalysisPage() {
         {/* Results Panel */}
         <div className="md:col-span-3 space-y-4">
           <div className="flex justify-between">
-            <Button variant="outline" size="sm" className="gap-2">
-              <RefreshCcw className="h-4 w-4" />
-              Refresh
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={handleRefresh}
+              disabled={isLoading}
+            >
+              <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? 'Refreshing...' : 'Refresh'}
             </Button>
             
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={handleExportResults}
+                disabled={isLoading || filteredResults.length === 0}
+              >
                 <Download className="h-4 w-4" />
                 Export Results
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={handleGenerateReport}
+                disabled={isLoading || filteredResults.length === 0}
+              >
                 <FileText className="h-4 w-4" />
                 Generate Report
               </Button>
@@ -243,42 +344,52 @@ export default function AnalysisPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tweets.map((tweet) => (
-                    <tr key={tweet.id} className="border-b last:border-b-0">
-                      <td className="py-4 px-4 max-w-md">
-                        <div className="line-clamp-2">{tweet.content}</div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <Badge 
-                          className={`
-                            ${tweet.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
-                              tweet.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
-                                'bg-red-100 text-red-800'} 
-                            hover:bg-opacity-90
-                          `}
-                        >
-                          {tweet.classification === 'Hate' ? 'Hate' : tweet.classification}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-4">{tweet.confidence}%</td>
-                      <td className="py-4 px-4">{tweet.timestamp}</td>
-                      <td className="py-4 px-4">
-                        <Button variant="ghost" size="icon" className="mx-auto">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-gray-500">
+                        Loading results...
                       </td>
                     </tr>
-                  ))}
+                  ) : filteredResults.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-gray-500">
+                        No results found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredResults.map((tweet) => (
+                      <tr key={tweet.id} className="border-b last:border-b-0">
+                        <td className="py-4 px-4 max-w-md">
+                          <div className="line-clamp-2">{tweet.text}</div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <Badge 
+                            className={`
+                              ${tweet.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
+                                tweet.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
+                                  'bg-red-100 text-red-800'} 
+                              hover:bg-opacity-90
+                            `}
+                          >
+                            {tweet.classification}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-4">{tweet.confidence.toFixed(1)}%</td>
+                        <td className="py-4 px-4">{new Date(tweet.timestamp).toLocaleString()}</td>
+                        <td className="py-4 px-4">
+                          <Button variant="ghost" size="icon" className="mx-auto">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
               
               <div className="bg-gray-50 border-t px-4 py-3 flex items-center justify-between">
                 <div className="text-sm text-gray-500">
-                  Showing 1-5 of {totalTweets} results
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled>Previous</Button>
-                  <Button variant="outline" size="sm">Next</Button>
+                  Showing {filteredResults.length} of {totalAnalyzed} results
                 </div>
               </div>
             </div>

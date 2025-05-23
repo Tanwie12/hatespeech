@@ -7,22 +7,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Upload, FileText, Info, Eye, Trash2 } from 'lucide-react';
 import Breadcrumb from '@/components/layout/breadcrumb';
-
-interface UploadedFile {
-  id: string;
-  filename: string;
-  uploadDate: string;
-  status: 'completed' | 'processing' | 'error';
-}
+import { toast } from 'sonner';
+import { useAnalysisStore } from '@/stores/analysis-store';
+import { useDashboardStore } from '@/stores/dashboard-store';
 
 export default function DataInputPage() {
-  const [files, setFiles] = useState<UploadedFile[]>([
-    { id: '1', filename: 'sales_data_2023.csv', uploadDate: '2023-11-15 14:30', status: 'completed' },
-    { id: '2', filename: 'customer_feedback.csv', uploadDate: '2023-11-15 13:45', status: 'processing' },
-    { id: '3', filename: 'inventory_report.csv', uploadDate: '2023-11-15 12:20', status: 'error' },
-  ]);
-  
   const [dragActive, setDragActive] = useState(false);
+  const { 
+    uploadFile, 
+    deleteFile, 
+    clearHistory,
+    uploadedFiles, 
+    isUploading, 
+    error 
+  } = useAnalysisStore();
   
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -33,48 +31,62 @@ export default function DataInputPage() {
       setDragActive(false);
     }
   };
+
+  const handleUpload = async (file: File) => {
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Please upload a CSV file');
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      toast.error('File size must be less than 50MB');
+      return;
+    }
+
+    try {
+      toast.promise(uploadFile(file), {
+        loading: 'Uploading file...',
+        success: () => {
+          // Refresh dashboard data after successful upload
+          useDashboardStore.getState().refreshAllData();
+          return 'File uploaded successfully';
+        },
+        error: (err) => err instanceof Error ? err.message : 'Failed to upload file'
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
+  };
   
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      // Handle file upload logic here
-      console.log("File dropped:", e.dataTransfer.files[0].name);
+      await handleUpload(e.dataTransfer.files[0]);
     }
   };
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      // Handle file upload logic here
-      console.log("File selected:", e.target.files[0].name);
+      await handleUpload(e.target.files[0]);
     }
   };
   
-  const clearHistory = () => {
-    setFiles([]);
+  const handleFileClick = () => {
+    document.getElementById('file-upload')?.click();
   };
-  
-  const StatusBadge = ({ status }: { status: string }) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Completed
-        </Badge>;
-      case 'processing':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-blue-500"></span> Processing
-        </Badge>;
-      case 'error':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-red-500"></span> Error
-        </Badge>;
-      default:
-        return null;
+
+  const handleDeleteFile = async (id: string) => {
+    try {
+      await deleteFile(id);
+      toast.success('File deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete file');
     }
   };
-  
+
   return (
     <div className="container mx-auto px-4 py-6">
       <Breadcrumb />
@@ -86,11 +98,27 @@ export default function DataInputPage() {
       
       {/* Upload Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <Button className="h-14 justify-start gap-2 text-sm font-normal">
-          <Upload className="h-5 w-5" />
-          Upload CSV
+        <Button 
+          className="h-14 justify-start gap-2 text-sm font-normal"
+          onClick={handleFileClick}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <div className="flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Uploading...
+            </div>
+          ) : (
+            <>
+              <Upload className="h-5 w-5" />
+              Upload CSV
+            </>
+          )}
         </Button>
-        <Button variant="outline" className="h-14 justify-start gap-2 text-sm font-normal">
+        <Button variant="outline" className="h-14 justify-start gap-2 text-sm font-normal" disabled={isUploading}>
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M22 17.5L18.5 21V17.5H22Z" fill="currentColor"/>
             <path d="M15 7V5C15 3.89543 14.1046 3 13 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -104,7 +132,7 @@ export default function DataInputPage() {
       <div 
         className={`border-2 border-dashed rounded-lg p-10 mb-6 flex flex-col items-center justify-center ${
           dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-        }`}
+        } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -116,15 +144,28 @@ export default function DataInputPage() {
           className="hidden"
           accept=".csv"
           onChange={handleFileChange}
+          disabled={isUploading}
         />
         
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400 mb-4">
-          <path d="M12 16V8M12 8L8 12M12 8L16 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2"/>
-        </svg>
-        
-        <p className="text-center text-gray-800 font-medium mb-1">Drag and drop your CSV file here, or click to browse</p>
-        <p className="text-center text-gray-500 text-sm">Supported file type: CSV up to 50MB</p>
+        {isUploading ? (
+          <div className="flex flex-col items-center gap-3">
+            <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-center text-gray-800 font-medium">Uploading file...</p>
+            <p className="text-center text-gray-500 text-sm">Please wait while we process your file</p>
+          </div>
+        ) : (
+          <>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400 mb-4">
+              <path d="M12 16V8M12 8L8 12M12 8L16 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+            <p className="text-center text-gray-800 font-medium mb-1">Drag and drop your CSV file here, or click to browse</p>
+            <p className="text-center text-gray-500 text-sm">Supported file type: CSV up to 50MB</p>
+          </>
+        )}
       </div>
       
       {/* File Guidelines */}
@@ -157,14 +198,14 @@ export default function DataInputPage() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-medium">Upload History</h2>
           
-          {files.length > 0 && (
+          {uploadedFiles.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearHistory}>
               Clear All
             </Button>
           )}
         </div>
         
-        {files.length > 0 ? (
+        {uploadedFiles.length > 0 ? (
           <div className="border rounded-lg overflow-hidden">
             <table className="w-full">
               <thead>
@@ -176,10 +217,10 @@ export default function DataInputPage() {
                 </tr>
               </thead>
               <tbody>
-                {files.map((file) => (
+                {uploadedFiles.map((file) => (
                   <tr key={file.id} className="border-b last:border-b-0">
                     <td className="py-3 px-4">{file.filename}</td>
-                    <td className="py-3 px-4">{file.uploadDate}</td>
+                    <td className="py-3 px-4">{new Date(file.uploadDate).toLocaleString()}</td>
                     <td className="py-3 px-4">
                       <StatusBadge status={file.status} />
                     </td>
@@ -188,7 +229,7 @@ export default function DataInputPage() {
                         <Button variant="ghost" size="icon">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -196,13 +237,6 @@ export default function DataInputPage() {
                   </tr>
                 ))}
               </tbody>
-              <tfoot>
-                <tr className="bg-gray-50 border-t">
-                  <td colSpan={4} className="py-2 px-4 text-sm text-gray-500">
-                    Showing 1-3 of 3 entries
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         ) : (
@@ -223,3 +257,22 @@ export default function DataInputPage() {
     </div>
   );
 }
+
+const StatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'completed':
+      return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 flex items-center gap-1">
+        <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Completed
+      </Badge>;
+    case 'processing':
+      return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 flex items-center gap-1">
+        <span className="w-2 h-2 rounded-full bg-blue-500"></span> Processing
+      </Badge>;
+    case 'error':
+      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 flex items-center gap-1">
+        <span className="w-2 h-2 rounded-full bg-red-500"></span> Error
+      </Badge>;
+    default:
+      return null;
+  }
+};

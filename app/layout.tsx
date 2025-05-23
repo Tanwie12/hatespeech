@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/header';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
         <main className="min-h-screen bg-gray-50 pt-16">
           {children}
         </main>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
