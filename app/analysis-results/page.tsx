@@ -30,7 +30,6 @@ export default function AnalysisPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [classifications, setClassifications] = useState({
     hate: true,
-    offensive: true,
     neutral: true
   });
 
@@ -57,7 +56,8 @@ export default function AnalysisPage() {
   // Filter results based on user selections
   const filteredResults = results.filter(tweet => {
     const meetsConfidence = tweet.confidence >= confidenceThreshold[0];
-    const meetsClassification = classifications[tweet.classification.toLowerCase() as keyof typeof classifications];
+    const classification = tweet.classification.toLowerCase();
+    const meetsClassification = classifications[classification === 'offensive' ? 'hate' : classification as keyof typeof classifications];
     const meetsSearch = searchQuery === '' || 
       tweet.text.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -139,7 +139,7 @@ export default function AnalysisPage() {
                 </div>
                 <div className="text-xs">
                   <span className="inline-block w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
-                  Offensive: {((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1)}%
+                  Hate: {((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1)}%
                 </div>
                 <div className="text-xs">
                   <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
@@ -217,33 +217,27 @@ export default function AnalysisPage() {
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox 
-                      id="hate-speech" 
+                      id="hate" 
                       checked={classifications.hate}
                       onCheckedChange={(checked) => 
-                        setClassifications({...classifications, hate: checked === true})
+                        setClassifications(prev => ({ ...prev, hate: !!checked }))
                       } 
                     />
-                    <label htmlFor="hate-speech" className="text-sm">Hate Speech</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="offensive" 
-                      checked={classifications.offensive}
-                      onCheckedChange={(checked) => 
-                        setClassifications({...classifications, offensive: checked === true})
-                      } 
-                    />
-                    <label htmlFor="offensive" className="text-sm">Offensive</label>
+                    <label htmlFor="hate" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Hate
+                    </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="neutral" 
                       checked={classifications.neutral}
                       onCheckedChange={(checked) => 
-                        setClassifications({...classifications, neutral: checked === true})
+                        setClassifications(prev => ({ ...prev, neutral: !!checked }))
                       } 
                     />
-                    <label htmlFor="neutral" className="text-sm">Neutral</label>
+                    <label htmlFor="neutral" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Neutral
+                    </label>
                   </div>
                 </div>
               </div>
@@ -347,12 +341,11 @@ export default function AnalysisPage() {
                           <Badge 
                             className={`
                               ${tweet.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
-                                tweet.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
-                                  'bg-red-100 text-red-800'} 
+                                'bg-orange-100 text-orange-800'} 
                               hover:bg-opacity-90
                             `}
                           >
-                            {tweet.classification}
+                            {tweet.classification === 'Offensive' ? 'Hate' : tweet.classification}
                           </Badge>
                         </td>
                         <td className="py-4 px-4">{tweet.confidence.toFixed(1)}%</td>

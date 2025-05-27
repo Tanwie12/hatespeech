@@ -43,7 +43,7 @@ const ReportPreview = ({
   visualizations: Record<string, boolean>;
   results: AnalysisResult[];
   totalAnalyzed: number;
-  classificationCounts: { neutral: number; offensive: number; hate: number };
+  classificationCounts: { neutral: number; offensive: number };
   averageConfidence: number;
 }) => {
   const filteredResults = results.filter(tweet => tweet.confidence >= confidenceThreshold[0]);
@@ -94,69 +94,15 @@ const ReportPreview = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                  <span className="text-sm">Offensive</span>
+                  <span className="text-sm">Hate</span>
                 </div>
                 <span className="text-sm font-medium">
                   {((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1)}%
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span className="text-sm">Hate</span>
-                </div>
-                <span className="text-sm font-medium">
-                  {((classificationCounts.hate / totalAnalyzed) * 100).toFixed(1)}%
-                </span>
-              </div>
             </div>
           </div>
         )}
-
-        {/* Results Preview */}
-        <div>
-          <h4 className="text-sm font-medium mb-3">Results Preview</h4>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="text-left py-2 px-4 text-xs font-medium text-gray-600">Text</th>
-                  <th className="text-left py-2 px-4 text-xs font-medium text-gray-600 w-28">Classification</th>
-                  <th className="text-left py-2 px-4 text-xs font-medium text-gray-600 w-24">Confidence</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredResults.slice(0, 3).map((result, index) => (
-                  <tr key={index} className="border-b last:border-b-0">
-                    <td className="py-2 px-4">
-                      <div className="text-sm line-clamp-1">{result.text}</div>
-                    </td>
-                    <td className="py-2 px-4">
-                      <Badge 
-                        className={`
-                          ${result.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
-                            result.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
-                              'bg-red-100 text-red-800'} 
-                          hover:bg-opacity-90
-                        `}
-                      >
-                        {result.classification}
-                      </Badge>
-                    </td>
-                    <td className="py-2 px-4">
-                      <span className="text-sm">{result.confidence.toFixed(1)}%</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredResults.length > 3 && (
-              <div className="bg-gray-50 border-t px-4 py-2 text-xs text-gray-500">
-                And {filteredResults.length - 3} more results...
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

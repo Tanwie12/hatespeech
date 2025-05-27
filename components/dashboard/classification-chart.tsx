@@ -1,7 +1,7 @@
 // components/dashboard/classification-chart.tsx
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { ClassificationData } from '@/types';
 
@@ -11,7 +11,7 @@ interface ClassificationChartProps {
   data: ClassificationData;
 }
 
-export default function ClassificationChart({ data }: ClassificationChartProps) {
+const ClassificationChart = memo(function ClassificationChart({ data }: ClassificationChartProps) {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
   
@@ -28,7 +28,7 @@ export default function ClassificationChart({ data }: ClassificationChartProps) 
     chartInstance.current = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Neutral', 'Offensive', 'Hate Speech'],
+        labels: ['Neutral', 'Hate', 'Hate Speech'],
         datasets: [{
           data: [
             data.neutral,
@@ -37,7 +37,7 @@ export default function ClassificationChart({ data }: ClassificationChartProps) 
           ],
           backgroundColor: [
             '#e77d55', // neutral (orange)
-            '#2db5a9', // offensive (teal)
+            '#2db5a9', // hate (teal)
             '#2c3e50'  // hate speech (dark blue)
           ],
           borderWidth: 0
@@ -73,4 +73,6 @@ export default function ClassificationChart({ data }: ClassificationChartProps) 
       <canvas ref={chartRef} />
     </div>
   );
-}
+});
+
+export default ClassificationChart;

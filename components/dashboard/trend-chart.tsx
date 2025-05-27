@@ -1,7 +1,7 @@
 // components/dashboard/trend-chart.tsx
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { TrendData } from '@/types';
 
@@ -11,7 +11,7 @@ interface TrendChartProps {
   data: TrendData;
 }
 
-export default function TrendChart({ data }: TrendChartProps) {
+const TrendChart = memo(function TrendChart({ data }: TrendChartProps) {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
   
@@ -39,7 +39,7 @@ export default function TrendChart({ data }: TrendChartProps) {
             tension: 0.4
           },
           {
-            label: 'Offensive',
+            label: 'Hate',
             data: data.offensive,
             borderColor: '#2db5a9',
             backgroundColor: 'transparent',
@@ -47,7 +47,7 @@ export default function TrendChart({ data }: TrendChartProps) {
             tension: 0.4
           },
           {
-            label: 'Hate',
+            label: 'Hate Speech',
             data: data.hate,
             borderColor: '#2c3e50',
             backgroundColor: 'transparent',
@@ -104,4 +104,6 @@ export default function TrendChart({ data }: TrendChartProps) {
       <canvas ref={chartRef} />
     </div>
   );
-}
+});
+
+export default TrendChart;

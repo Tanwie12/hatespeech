@@ -1,7 +1,7 @@
 // app/dashboard/page.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { useAnalysisStore } from '@/stores/analysis-store';
 
@@ -17,6 +17,12 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 export default function DashboardPage() {
+  const prevDataRef = useRef<{
+    dashboardData: any;
+    trendsData: any;
+    activityData: any;
+  }>({ dashboardData: null, trendsData: null, activityData: null });
+
   const { 
     dashboardData, 
     trendsData, 
@@ -34,11 +40,23 @@ export default function DashboardPage() {
 
   // Subscribe to analysis store changes
   useEffect(() => {
-    // Subscribe to any changes in the analysis store
+    // Only refresh if the data has actually changed
+    if (JSON.stringify(prevDataRef.current.dashboardData) !== JSON.stringify(dashboardData) ||
+        JSON.stringify(prevDataRef.current.trendsData) !== JSON.stringify(trendsData) ||
+        JSON.stringify(prevDataRef.current.activityData) !== JSON.stringify(activityData)) {
+      prevDataRef.current = {
+        dashboardData,
+        trendsData,
+        activityData
+      };
+    }
+  }, [dashboardData, trendsData, activityData]);
+
+  // Subscribe to analysis store changes
+  useEffect(() => {
     const unsubscribe = useAnalysisStore.subscribe((state, prevState) => {
-      // Check if the results have changed
-      if (state.results !== prevState?.results || 
-          state.uploadedFiles !== prevState?.uploadedFiles) {
+      if (state.results.length !== prevState?.results.length || 
+          state.uploadedFiles.length !== prevState?.uploadedFiles.length) {
         refreshAllData().catch(() => {
           toast.error('Failed to refresh dashboard data');
         });
@@ -80,9 +98,9 @@ export default function DashboardPage() {
           icon={<svg className="w-4 h-4" />}
         />
         <StatusCard
-          title="Offensive Content"
-          value={`${dashboardData?.offensivePercent || 0}%`}
-          progressValue={dashboardData?.offensivePercent}
+          title="Hate Content"
+          value={`${dashboardData?.hatePercent || 0}%`}
+          progressValue={dashboardData?.hatePercent}
           variant="danger"
           icon={<svg className="w-4 h-4" />}
         />

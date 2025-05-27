@@ -24,7 +24,7 @@ export interface TrendData {
 export interface ActivityItem {
   id: string;
   content: string;
-  classification: 'Neutral' | 'Offensive' | 'Hate Speech';
+  classification: 'Neutral' | 'Offensive' | 'Hate';
   confidence: number;
   time: string;
 }
@@ -39,7 +39,6 @@ export interface DashboardData {
   totalTweets: number;
   tweetChange: number;
   hatePercent: number;
-  offensivePercent: number;
   riskLevel: string;
   classification: ClassificationData;
   systemStatus: SystemStatusData;
