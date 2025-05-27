@@ -1,7 +1,7 @@
 // app/data-input/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,12 @@ export default function DataInputPage() {
   const [dragActive, setDragActive] = useState(false);
   const [inputText, setInputText] = useState('');
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    // Fetch results on mount to get upload history
+    useAnalysisStore.getState().fetchResults();
+  }, []);
   
   const { 
     uploadFile, 
@@ -44,6 +50,8 @@ export default function DataInputPage() {
   };
 
   const handleUpload = async (file: File) => {
+    if (!file) return;
+
     if (!file.name.endsWith('.csv')) {
       toast.error('Please upload a CSV file');
       return;
@@ -60,6 +68,7 @@ export default function DataInputPage() {
         success: () => {
           // Refresh dashboard data after successful upload
           useDashboardStore.getState().refreshAllData();
+          setShowSuccessModal(true);
           return 'File uploaded successfully';
         },
         error: (err) => err instanceof Error ? err.message : 'Failed to upload file'
@@ -107,7 +116,8 @@ export default function DataInputPage() {
     try {
       await analyzeTweet(inputText);
       setInputText('');
-      toast.success('Analysis completed successfully');
+      useDashboardStore.getState().refreshAllData();
+      setShowSuccessModal(true);
     } catch {
       toast.error('Failed to analyze text');
     }
@@ -356,6 +366,42 @@ export default function DataInputPage() {
         )}
       </div>
       
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-center">Analysis Complete</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 space-y-6">
+            <div className="flex flex-col items-center justify-center text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-gray-600 text-base">
+                Your content has been analyzed successfully. The results are now available on the dashboard.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSuccessModal(false)}
+                className="px-4 py-2"
+              >
+                Stay Here
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="px-4 py-2 bg-primary text-white hover:bg-primary/90"
+              >
+                View Results
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Details Dialog */}
       <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
         <DialogContent className="sm:max-w-[500px]">
@@ -413,11 +459,7 @@ export default function DataInputPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Action Buttons */}
-      <div className="flex justify-end gap-3">
-        <Button variant="outline">Cancel</Button>
-        <Button>Process Data</Button>
-      </div>
+
     </div>
   );
 }
