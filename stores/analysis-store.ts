@@ -13,7 +13,7 @@ interface APIResponse {
 export interface AnalysisResult {
   id: string;
   text: string;
-  classification: 'Neutral' | 'Offensive' | 'Hate';
+  classification: 'Neutral' | 'Hatespeech' | 'Hate';
   confidence: number;
   timestamp: string;
 }
@@ -157,7 +157,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         id: Date.now().toString(),
         text: result.tweet,
         classification: prediction.label === 'non-offensive' ? 'Neutral' : 
-                       prediction.label === 'offensive' ? 'Offensive' : 'Hate',
+                       prediction.label === 'offensive' ? 'Hatespeech' : 'Hate',
         confidence: parseFloat(prediction.score) * 100,
         timestamp: new Date().toISOString(),
       };
@@ -230,7 +230,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         id: Math.random().toString(36).substr(2, 9),
         text: item.Tweet,
         classification: item.Prediction === 'non-offensive' ? 'Neutral' : 
-                       item.Prediction === 'offensive' ? 'Offensive' : 'Hate',
+                       item.Prediction === 'offensive' ? 'Hatespeech' : 'Hate',
         confidence: parseFloat(item.Score) * 100,
         timestamp: new Date().toISOString()
       }));

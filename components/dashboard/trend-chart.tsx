@@ -39,7 +39,7 @@ export default function TrendChart({ data }: TrendChartProps) {
             tension: 0.4
           },
           {
-            label: 'Offensive',
+            label: 'Hatespeech',
             data: data.offensive,
             borderColor: '#2db5a9',
             backgroundColor: 'transparent',

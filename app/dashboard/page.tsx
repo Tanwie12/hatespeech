@@ -73,7 +73,7 @@ export default function DashboardPage() {
           icon={<svg className="w-4 h-4" />}
         />
         <StatusCard
-          title="Hate Speech Content"
+          title="Hatespeech Content"
           value={`${dashboardData?.hatePercent || 0}%`}
           progressValue={dashboardData?.hatePercent}
           variant="warning"

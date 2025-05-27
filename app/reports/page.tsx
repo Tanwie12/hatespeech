@@ -94,7 +94,7 @@ const ReportPreview = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                  <span className="text-sm">Offensive</span>
+                  <span className="text-sm">Hatespeech</span>
                 </div>
                 <span className="text-sm font-medium">
                   {((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1)}%
@@ -135,7 +135,7 @@ const ReportPreview = ({
                       <Badge 
                         className={`
                           ${result.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
-                            result.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
+                            result.classification === 'Hatespeech' ? 'bg-orange-100 text-orange-800' : 
                               'bg-red-100 text-red-800'} 
                           hover:bg-opacity-90
                         `}

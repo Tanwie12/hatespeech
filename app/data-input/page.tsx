@@ -373,7 +373,7 @@ export default function DataInputPage() {
                 <Badge 
                   className={`
                     ${selectedFile.result.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
-                      selectedFile.result.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
+                      selectedFile.result.classification === 'Hatespeech' ? 'bg-orange-100 text-orange-800' : 
                         'bg-red-100 text-red-800'} 
                   `}
                 >

@@ -63,7 +63,7 @@ export const generatePDF = (content: ReportContent): Blob => {
       ['Total Analyzed', content.summary.totalAnalyzed.toString()],
       ['Average Confidence', content.summary.averageConfidence],
       ['Neutral', content.summary.distribution.neutral],
-      ['Offensive', content.summary.distribution.offensive],
+      ['Hatespeech', content.summary.distribution.offensive],
       ['Hate Speech', content.summary.distribution.hate]
     ],
     theme: 'grid',

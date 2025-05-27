@@ -24,7 +24,7 @@ export interface TrendData {
 export interface ActivityItem {
   id: string;
   content: string;
-  classification: 'Neutral' | 'Offensive' | 'Hate Speech';
+  classification: 'Neutral' | 'Hatespeech' | 'Hate Speech';
   confidence: number;
   time: string;
 }
