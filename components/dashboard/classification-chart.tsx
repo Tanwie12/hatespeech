@@ -28,7 +28,7 @@ export default function ClassificationChart({ data }: ClassificationChartProps) 
     chartInstance.current = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: ['Neutral', 'Hatespeech', 'Hate Speech'],
+        labels: ['Neutral', 'Offensive', 'Hate Speech'],
         datasets: [{
           data: [
             data.neutral,

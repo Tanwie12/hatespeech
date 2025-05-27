@@ -139,7 +139,7 @@ export default function AnalysisPage() {
                 </div>
                 <div className="text-xs">
                   <span className="inline-block w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
-                  Hatespeech: {((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1)}%
+                  Offensive: {((classificationCounts.offensive / totalAnalyzed) * 100).toFixed(1)}%
                 </div>
                 <div className="text-xs">
                   <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
@@ -233,7 +233,7 @@ export default function AnalysisPage() {
                         setClassifications({...classifications, offensive: checked === true})
                       } 
                     />
-                    <label htmlFor="offensive" className="text-sm">Hatespeech</label>
+                    <label htmlFor="offensive" className="text-sm">Offensive</label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox 
@@ -347,7 +347,7 @@ export default function AnalysisPage() {
                           <Badge 
                             className={`
                               ${tweet.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
-                                tweet.classification === 'Hatespeech' ? 'bg-orange-100 text-orange-800' : 
+                                tweet.classification === 'Offensive' ? 'bg-orange-100 text-orange-800' : 
                                   'bg-red-100 text-red-800'} 
                               hover:bg-opacity-90
                             `}

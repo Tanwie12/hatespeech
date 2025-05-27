@@ -22,7 +22,7 @@ export default function ActivityTable({ data }: ActivityTableProps) {
         return 'bg-green-100 text-green-800 hover:bg-green-100';
       case 'Offensive':
         return 'bg-amber-100 text-amber-800 hover:bg-amber-100';
-      case 'Hatespeech':
+      case 'Hate Speech':
         return 'bg-red-100 text-red-800 hover:bg-red-100';
       default:
         return '';
