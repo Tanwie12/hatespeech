@@ -15,13 +15,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReloadIcon, DownloadIcon, ArrowRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import type { DashboardData, TrendData, ActivityItem } from '../../types';
 
 export default function DashboardPage() {
+
+
   const prevDataRef = useRef<{
-    dashboardData: any;
-    trendsData: any;
-    activityData: any;
-  }>({ dashboardData: null, trendsData: null, activityData: null });
+    dashboardData: DashboardData | null;
+    trendsData: TrendData | null;
+    activityData: ActivityItem[] | null;
+  }>({
+    dashboardData: null, 
+    trendsData: null, 
+    activityData: null 
+  });
 
   const { 
     dashboardData, 

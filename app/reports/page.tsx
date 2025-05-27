@@ -13,7 +13,7 @@ import Breadcrumb from '@/components/layout/breadcrumb';
 import { useAnalysisStore } from '@/stores/analysis-store';
 import { toast } from 'sonner';
 import { generatePDF, generateExcel, generateCSV, generateJSON } from '@/utils/report-generators';
-import { Badge } from '@/components/ui/badge';
+
 import type { AnalysisResult } from '@/stores/analysis-store';
 
 type ReportFormat = 'PDF' | 'Excel' | 'CSV' | 'JSON';
@@ -46,7 +46,7 @@ const ReportPreview = ({
   classificationCounts: { neutral: number; offensive: number };
   averageConfidence: number;
 }) => {
-  const filteredResults = results.filter(tweet => tweet.confidence >= confidenceThreshold[0]);
+
 
   return (
     <div className="border rounded-lg h-96 overflow-auto bg-white p-6">
