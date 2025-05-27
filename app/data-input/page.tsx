@@ -114,12 +114,14 @@ export default function DataInputPage() {
     }
 
     try {
-      await analyzeTweet(inputText);
-      setInputText('');
-      useDashboardStore.getState().refreshAllData();
-      setShowSuccessModal(true);
-    } catch {
+      const result = await analyzeTweet(inputText);
+      if (result) {
+        setInputText('');
+        setShowSuccessModal(true);
+      }
+    } catch (error) {
       toast.error('Failed to analyze text');
+      console.error('Analysis error:', error);
     }
   };
 

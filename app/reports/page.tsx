@@ -32,7 +32,6 @@ const ReportPreview = ({
   dateRange,
   confidenceThreshold,
   visualizations,
-  results,
   totalAnalyzed,
   classificationCounts,
   averageConfidence
