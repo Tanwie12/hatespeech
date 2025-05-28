@@ -201,29 +201,29 @@ export default function DocumentationPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-4 sm:py-6">
           <div className="flex items-center gap-2 mb-2">
-            <BookOpen className="h-6 w-6 text-blue-600" />
-            <h1 className="text-2xl font-semibold text-gray-900">Documentation</h1>
+            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Documentation</h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Learn how to use HateSpeech Guard effectively
           </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           {/* Sidebar */}
-          <div className="lg:w-64 flex-shrink-0">
-            <div className="sticky top-8">
-              <nav className="space-y-1">
+          <div className="lg:w-64 flex-shrink-0 order-2 lg:order-1">
+            <div className="sticky top-0 lg:top-8 bg-white/80 backdrop-blur-sm lg:bg-transparent lg:backdrop-blur-none z-10 py-2 -mx-4 px-4 lg:mx-0 lg:px-0 lg:py-0 border-b lg:border-0">
+              <nav className="flex lg:flex-col gap-2 lg:gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar">
                 {sections.map((section) => (
                   <Link
                     key={section.id}
                     href={`/docs#${section.id}`}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100"
+                    className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 lg:w-full whitespace-nowrap"
                   >
                     {section.icon}
                     <span>{section.title}</span>
@@ -234,8 +234,8 @@ export default function DocumentationPage() {
           </div>
 
           {/* Content */}
-          <div className="flex-1">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex-1 order-1 lg:order-2">
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
               {sections.map(section => (
                 <div key={section.id} id={section.id} className="scroll-mt-20">
                   {section.content}

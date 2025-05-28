@@ -1,10 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Shield, Zap, BarChart2, FileText, RefreshCw, Lock, Menu, X } from 'lucide-react';
+
+// Lazy load feature sections
+const FeaturesSection = dynamic(() => import('@/components/landing/features-section'), {
+  loading: () => <div className="py-20 bg-white"><div className="container mx-auto px-4 animate-pulse"><div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-12"></div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"><div className="h-48 bg-gray-100 rounded-lg"></div><div className="h-48 bg-gray-100 rounded-lg"></div><div className="h-48 bg-gray-100 rounded-lg"></div></div></div></div>
+});
+
+const CTASection = dynamic(() => import('@/components/landing/cta-section'));
+const FooterSection = dynamic(() => import('@/components/landing/footer-section'));
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -85,125 +94,50 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Powerful Features for Content Analysis
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<Zap className="h-6 w-6 text-blue-600" />}
-              title="Real-time Analysis"
-              description="Get instant results for your content analysis with our advanced AI model."
-            />
-            <FeatureCard
-              icon={<BarChart2 className="h-6 w-6 text-blue-600" />}
-              title="Detailed Analytics"
-              description="Comprehensive dashboard with insights and trends visualization."
-            />
-            <FeatureCard
-              icon={<FileText className="h-6 w-6 text-blue-600" />}
-              title="Bulk Processing"
-              description="Upload and analyze multiple entries with CSV file support."
-            />
-            <FeatureCard
-              icon={<RefreshCw className="h-6 w-6 text-blue-600" />}
-              title="Continuous Learning"
-              description="Our model continuously improves with new data for better accuracy."
-            />
-            <FeatureCard
-              icon={<Lock className="h-6 w-6 text-blue-600" />}
-              title="Secure & Private"
-              description="Your data is encrypted and processed with the highest security standards."
-            />
-            <FeatureCard
-              icon={<Shield className="h-6 w-6 text-blue-600" />}
-              title="Content Moderation"
-              description="Effectively moderate content across your platforms and communities."
-            />
+      <Suspense fallback={
+        <div className="py-20 bg-white">
+          <div className="container mx-auto px-4 animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-12"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="h-48 bg-gray-100 rounded-lg"></div>
+              <div className="h-48 bg-gray-100 rounded-lg"></div>
+              <div className="h-48 bg-gray-100 rounded-lg"></div>
+            </div>
           </div>
         </div>
-      </section>
+      }>
+        <FeaturesSection />
+      </Suspense>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
-            Start Protecting Your Community Today
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join organizations worldwide using our platform to create safer online spaces.
-          </p>
-          <Link href="/data-input">
-            <Button size="lg" variant="secondary" className="gap-2">
-              Get Started Now
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+      <Suspense fallback={
+        <div className="py-20 bg-blue-600">
+          <div className="container mx-auto px-4 animate-pulse">
+            <div className="h-8 bg-blue-500 rounded w-96 mx-auto mb-6"></div>
+            <div className="h-4 bg-blue-500 rounded w-64 mx-auto"></div>
+          </div>
         </div>
-      </section>
+      }>
+        <CTASection />
+      </Suspense>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="h-6 w-6 text-blue-500" />
-                <span className="text-xl font-semibold text-white">HateSpeech Guard</span>
-              </div>
-              <p className="text-sm text-gray-400">
-                Advanced AI-powered hate speech detection for safer online communities.
-              </p>
+      <Suspense fallback={
+        <div className="bg-gray-900 py-12">
+          <div className="container mx-auto px-4 animate-pulse">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="h-32 bg-gray-800 rounded"></div>
+              <div className="h-32 bg-gray-800 rounded"></div>
+              <div className="h-32 bg-gray-800 rounded"></div>
+              <div className="h-32 bg-gray-800 rounded"></div>
             </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Product</h3>
-              <ul className="space-y-2">
-                <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
-                <li><Link href="/data-input" className="hover:text-white transition-colors">Analysis</Link></li>
-                <li><Link href="/reports" className="hover:text-white transition-colors">Reports</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2">
-                <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">API Reference</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Support</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-sm text-gray-400">
-            © {new Date().getFullYear()} HateSpeech Guard. All rights reserved.
           </div>
         </div>
-      </footer>
+      }>
+        <FooterSection />
+      </Suspense>
     </div>
   );
 }
 
-function FeatureCard({ icon, title, description }: { 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string; 
-}) {
-  return (
-    <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-      <CardContent className="p-6">
-        <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
-          {icon}
-        </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600">{description}</p>
-      </CardContent>
-    </Card>
-  );
-}
+
