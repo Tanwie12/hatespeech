@@ -1,21 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+
 import { 
   BookOpen, 
-  FileText, 
   Upload, 
   BarChart2, 
   MessageSquare,
   ChevronRight,
   ChevronDown,
   Code,
-  Database,
   Shield,
-  Zap
 } from 'lucide-react';
 
 export default function DocumentationPage() {
@@ -164,9 +159,9 @@ export default function DocumentationPage() {
                     "success": true,
                     "data": {'{'}
                       "tweet": {'{'}
-                        "tweet": "original text",
-                        "label": "classification",
-                        "score": "confidence"
+                        &quot;tweet&quot;: &quot;original text&quot;,
+                        &quot;label&quot;: &quot;classification&quot;,
+                        &quot;score&quot;: &quot;confidence&quot;
                       {'}'}
                     {'}'}
                   {'}'}
@@ -185,7 +180,7 @@ export default function DocumentationPage() {
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-gray-900">Security Measures</h3>
           <p className="text-gray-600">
-            We take security and privacy seriously. Here's how we protect your data:
+            We take security and privacy seriously. Here&apos;s how we protect your data:
           </p>
           <div className="space-y-4">
             <ul className="space-y-2 text-gray-600">

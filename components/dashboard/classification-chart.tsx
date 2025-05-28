@@ -33,7 +33,7 @@ const ClassificationChart = memo(function ClassificationChart({ data }: Classifi
           data: [
             data.neutral,
             data.offensive,
-            data.hateSpeed
+            data.hate
           ],
           backgroundColor: [
             '#e77d55', // neutral (orange)
