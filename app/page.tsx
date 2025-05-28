@@ -4,8 +4,8 @@ import { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Shield, Zap, BarChart2, FileText, RefreshCw, Lock, Menu, X } from 'lucide-react';
+
+import { ArrowRight, Shield, Menu, X } from 'lucide-react';
 
 // Lazy load feature sections
 const FeaturesSection = dynamic(() => import('@/components/landing/features-section'), {

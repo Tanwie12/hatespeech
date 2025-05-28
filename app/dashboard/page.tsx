@@ -1,21 +1,63 @@
 // app/dashboard/page.tsx
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { useAnalysisStore } from '@/stores/analysis-store';
-
-import StatusCard from '@/components/dashboard/status-card';
-import ClassificationChart from '@/components/dashboard/classification-chart';
-import TrendChart from '@/components/dashboard/trend-chart';
-import ActivityTable from '@/components/dashboard/activity-table';
-import SystemStatus from '@/components/dashboard/system-status';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ReloadIcon, DownloadIcon, ArrowRightIcon } from '@radix-ui/react-icons';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
-import type { DashboardData, TrendData, ActivityItem } from '../../types';
+import type { DashboardData, TrendData, ActivityItem } from '@/types';
+
+// Lazy load components
+const MetricsGrid = dynamic(() => import('@/components/dashboard/metrics-grid'), {
+  loading: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="bg-white rounded-lg shadow-sm border p-4 animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+          <div className="h-6 bg-gray-200 rounded w-16"></div>
+        </div>
+      ))}
+    </div>
+  )
+});
+
+const ChartsGrid = dynamic(() => import('@/components/dashboard/charts-grid'), {
+  loading: () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {[...Array(2)].map((_, i) => (
+        <div key={i} className="bg-white rounded-lg shadow-sm border p-4 animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
+          <div className="h-48 bg-gray-100 rounded"></div>
+        </div>
+      ))}
+    </div>
+  )
+});
+
+const ActivitySection = dynamic(() => import('@/components/dashboard/activity-section'), {
+  loading: () => (
+    <div className="bg-white rounded-lg shadow-sm border p-4 mb-6 animate-pulse">
+      <div className="flex justify-between items-center mb-4">
+        <div className="h-4 bg-gray-200 rounded w-32"></div>
+        <div className="h-8 bg-gray-200 rounded w-24"></div>
+      </div>
+      <div className="h-48 bg-gray-100 rounded"></div>
+    </div>
+  )
+});
+
+const FooterActions = dynamic(() => import('@/components/dashboard/footer-actions'), {
+  loading: () => (
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 animate-pulse">
+      <div className="h-4 bg-gray-200 rounded w-48"></div>
+      <div className="flex space-x-4 mt-4 sm:mt-0">
+        <div className="h-9 bg-gray-200 rounded w-32"></div>
+        <div className="h-9 bg-gray-200 rounded w-32"></div>
+      </div>
+    </div>
+  )
+});
 
 export default function DashboardPage() {
 
@@ -89,103 +131,62 @@ export default function DashboardPage() {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatusCard
-          title="Total Tweets Analyzed"
-          value={dashboardData?.totalTweets || 0}
-          change={dashboardData?.tweetChange}
-          changeText="from last week"
-          icon={<svg className="w-4 h-4" />}
-        />
-        <StatusCard
-          title="Hate Speech Content"
-          value={`${dashboardData?.hatePercent || 0}%`}
-          progressValue={dashboardData?.hatePercent}
-          variant="warning"
-          icon={<svg className="w-4 h-4" />}
-        />
-        <StatusCard
-          title="Hate Content"
-          value={`${dashboardData?.hatePercent || 0}%`}
-          progressValue={dashboardData?.hatePercent}
-          variant="danger"
-          icon={<svg className="w-4 h-4" />}
-        />
-        <StatusCard
-          title="System Risk Level"
-          value={dashboardData?.riskLevel || 'Unknown'}
-          variant="warning"
-          icon={<svg className="w-4 h-4" />}
-        />
-      </div>
+      <Suspense fallback={
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg shadow-sm border p-4 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+              <div className="h-6 bg-gray-200 rounded w-16"></div>
+            </div>
+          ))}
+        </div>
+      }>
+        <MetricsGrid data={dashboardData} />
+      </Suspense>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Classification Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {dashboardData?.classification && (
-              <ClassificationChart data={dashboardData.classification} />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>7-Day Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {trendsData && <TrendChart data={trendsData} />}
-          </CardContent>
-        </Card>
-      </div>
+      <Suspense fallback={
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg shadow-sm border p-4 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
+              <div className="h-48 bg-gray-100 rounded"></div>
+            </div>
+          ))}
+        </div>
+      }>
+        <ChartsGrid dashboardData={dashboardData} trendsData={trendsData} />
+      </Suspense>
 
       {/* Activity Table */}
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent Activity</CardTitle>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <ReloadIcon className="mr-2 h-4 w-4" />
-            )}
-            Refresh
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <ActivityTable data={activityData} />
-        </CardContent>
-      </Card>
+      <Suspense fallback={
+        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6 animate-pulse">
+          <div className="flex justify-between items-center mb-4">
+            <div className="h-4 bg-gray-200 rounded w-32"></div>
+            <div className="h-8 bg-gray-200 rounded w-24"></div>
+          </div>
+          <div className="h-48 bg-gray-100 rounded"></div>
+        </div>
+      }>
+        <ActivitySection 
+          data={activityData}
+          isLoading={isLoading}
+          onRefresh={handleRefresh}
+        />
+      </Suspense>
 
       {/* Footer Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6">
-        <SystemStatus 
-          operational={dashboardData?.systemStatus.operational || false}
-          lastUpdated={dashboardData?.systemStatus.lastUpdated || ''}
-          version={dashboardData?.version || ''}
-        />
-        
-        <div className="flex space-x-4 mt-4 sm:mt-0">
-          <Button variant="outline">
-            <DownloadIcon className="mr-2 h-4 w-4" />
-            Download Report
-          </Button>
-          <Button asChild>
-            <Link href="/data-input">
-              Go to Data Input
-              <ArrowRightIcon className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+      <Suspense fallback={
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-48"></div>
+          <div className="flex space-x-4 mt-4 sm:mt-0">
+            <div className="h-9 bg-gray-200 rounded w-32"></div>
+            <div className="h-9 bg-gray-200 rounded w-32"></div>
+          </div>
         </div>
-      </div>
+      }>
+        <FooterActions data={dashboardData} />
+      </Suspense>
     </div>
   );
 }
