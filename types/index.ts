@@ -12,7 +12,7 @@ export interface StatusCardProps {
 export interface ClassificationData {
   neutral: number;
   offensive: number;
-  hateSpeed: number;
+  hate: number;
 }
 
 export interface TrendData {

@@ -114,13 +114,24 @@ export default function DataInputPage() {
     }
 
     try {
-      const result = await analyzeTweet(inputText);
-      if (result) {
-        setInputText('');
-        setShowSuccessModal(true);
-      }
+      await toast.promise(
+        async () => {
+          const result = await analyzeTweet(inputText);
+          if (result) {
+            setInputText('');
+            // No need to fetch dashboard data since the analysis store is already updated
+            setShowSuccessModal(true);
+            return result;
+          }
+          throw new Error('No result returned');
+        },
+        {
+          loading: 'Analyzing text...',
+          success: 'Text analyzed successfully',
+          error: 'Failed to analyze text'
+        }
+      );
     } catch (error) {
-      toast.error('Failed to analyze text');
       console.error('Analysis error:', error);
     }
   };
@@ -370,32 +381,32 @@ export default function DataInputPage() {
       
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-center">Analysis Complete</DialogTitle>
+        <DialogContent className="sm:max-w-[425px] bg-white border-0">
+          <DialogHeader className="px-6 pt-6">
+            <DialogTitle className="text-xl font-semibold text-center text-gray-900">Analysis Complete</DialogTitle>
           </DialogHeader>
-          <div className="p-6 space-y-6">
+          <div className="px-6 py-4 space-y-6">
             <div className="flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-gray-600 text-base">
-                Your content has been analyzed successfully. The results are now available on the dashboard.
+              <p className="text-gray-700 text-base leading-relaxed max-w-sm">
+                Your content has been analyzed successfully. View the results on the dashboard to see the insights.
               </p>
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <Button 
                 variant="outline" 
                 onClick={() => setShowSuccessModal(false)}
-                className="px-4 py-2"
+                className="px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Stay Here
               </Button>
               <Button 
                 onClick={() => window.location.href = '/dashboard'}
-                className="px-4 py-2 bg-primary text-white hover:bg-primary/90"
+                className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 View Results
               </Button>
@@ -406,58 +417,69 @@ export default function DataInputPage() {
 
       {/* Details Dialog */}
       <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Analysis Details</DialogTitle>
+        <DialogContent className="sm:max-w-[500px] bg-white border-0">
+          <DialogHeader className="px-6 pt-6 border-b border-gray-100 pb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900">Analysis Details</DialogTitle>
           </DialogHeader>
-          {selectedFile?.type === 'text' && selectedFile.result && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium mb-1">Content</h4>
-                <p className="text-gray-600 text-sm">{selectedFile.content}</p>
+          <div className="px-6 py-4">
+            {selectedFile?.type === 'text' && selectedFile.result && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Content</h4>
+                  <p className="text-gray-700 text-sm">{selectedFile.content}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Classification</h4>
+                  <Badge 
+                    className={`
+                      ${selectedFile.result.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
+                        selectedFile.result.classification === 'Hate' ? 'bg-red-100 text-red-800' : 
+                          'bg-orange-100 text-orange-800'} 
+                      px-3 py-1 text-sm font-medium rounded-full
+                    `}
+                  >
+                    {selectedFile.result.classification}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Confidence</h4>
+                  <div className="flex items-center gap-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div 
+                        className="bg-blue-600 h-2.5 rounded-full" 
+                        style={{ width: `${selectedFile.result.confidence}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm text-gray-700">{selectedFile.result.confidence.toFixed(1)}%</span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Timestamp</h4>
+                  <p className="text-gray-700 text-sm">
+                    {new Date(selectedFile.result.timestamp).toLocaleString()}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-sm font-medium mb-1">Classification</h4>
-                <Badge 
-                  className={`
-                    ${selectedFile.result.classification === 'Neutral' ? 'bg-green-100 text-green-800' : 
-                      selectedFile.result.classification === 'Hate' ? 'bg-orange-100 text-orange-800' : 
-                        'bg-red-100 text-red-800'} 
-                  `}
-                >
-                  {selectedFile.result.classification}
-                </Badge>
+            )}
+            {selectedFile?.type === 'file' && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Filename</h4>
+                  <p className="text-gray-700 text-sm">{selectedFile.filename}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Upload Date</h4>
+                  <p className="text-gray-700 text-sm">
+                    {new Date(selectedFile.uploadDate).toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Status</h4>
+                  <StatusBadge status={selectedFile.status} />
+                </div>
               </div>
-              <div>
-                <h4 className="text-sm font-medium mb-1">Confidence</h4>
-                <p className="text-gray-600 text-sm">{selectedFile.result.confidence.toFixed(1)}%</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-1">Timestamp</h4>
-                <p className="text-gray-600 text-sm">
-                  {new Date(selectedFile.result.timestamp).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          )}
-          {selectedFile?.type === 'file' && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium mb-1">Filename</h4>
-                <p className="text-gray-600 text-sm">{selectedFile.filename}</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-1">Upload Date</h4>
-                <p className="text-gray-600 text-sm">
-                  {new Date(selectedFile.uploadDate).toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-1">Status</h4>
-                <StatusBadge status={selectedFile.status} />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </DialogContent>
       </Dialog>
       

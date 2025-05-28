@@ -27,16 +27,16 @@ export const useDashboardStore = create<DashboardState>((set) => ({
       set({ isLoading: true, error: null });
       
       // Get data from analysis store
-      await useAnalysisStore.getState().fetchResults();
       const analysisState = useAnalysisStore.getState();
       
       const totalTweets = analysisState.totalAnalyzed;
-      const { neutral, offensive } = analysisState.classificationCounts;
+      const { neutral, offensive, hate } = analysisState.classificationCounts;
       
       // Calculate percentages
-      const hatePercent = Math.round((offensive / totalTweets) * 100);
+      const hatePercent = Math.round(((offensive + hate) / totalTweets) * 100);
       const neutralPercent = Math.round((neutral / totalTweets) * 100);
       const offensivePercent = Math.round((offensive / totalTweets) * 100);
+      const hateSpeedPercent = Math.round((hate / totalTweets) * 100);
       
       // Determine risk level based on hate speech percentage
       let riskLevel = 'Low Risk';
@@ -47,12 +47,11 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         totalTweets,
         tweetChange: 0, // We can implement this later by tracking historical data
         hatePercent,
-
         riskLevel,
         classification: {
           neutral: neutralPercent,
           offensive: offensivePercent,
-          hateSpeed: hatePercent
+          hate: hateSpeedPercent
         },
         systemStatus: {
           operational: true,

@@ -122,7 +122,11 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const response = await fetch(`${getApiUrl()}/api/analyze`, {
+      // Make sure we're actually sending the request and waiting for response
+      const apiUrl = `${getApiUrl()}/api/analyze`;
+      console.log('Sending request to:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,27 +143,23 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         throw new Error(result.error || 'Failed to analyze tweet');
       }
 
-      // Handle the new response format where analysis results are in the analysis array
-      if (!result.analysis || !Array.isArray(result.analysis) || result.analysis.length === 0) {
-        console.error('Invalid or empty analysis array:', result);
-        throw new Error('Invalid response format: missing analysis data');
+      if (!result.success || !result.data || !result.data.tweet) {
+        console.error('Invalid response format:', result);
+        throw new Error('Invalid response format from server');
       }
 
-      // Use the first analysis result
-      const prediction = result.analysis[0];
+      // Wait for the results to be fetched from backend
+      await get().fetchResults();
 
-      if (!prediction || !prediction.label || !prediction.score) {
-        console.error('Missing prediction data:', prediction);
-        throw new Error('Invalid prediction data: missing required fields');
-      }
-
+      // Only after we have the results, update the UI
+      const tweetData = result.data.tweet;
       const analysisResult: AnalysisResult = {
         id: Date.now().toString(),
-        text: result.tweet,
-        classification: prediction.label === 'non-offensive' ? 'Neutral' : 
-                       prediction.label === 'offensive' ? 'Offensive' : 'Hate',
-        confidence: parseFloat(prediction.score) * 100,
-        timestamp: new Date().toISOString(),
+        text: tweetData.tweet,
+        classification: tweetData.label === 'non-offensive' ? 'Neutral' : 
+                       tweetData.label === 'offensive' ? 'Offensive' : 'Hate',
+        confidence: parseFloat(tweetData.score) * 100,
+        timestamp: new Date().toISOString()
       };
 
       // Create a new history entry for the text analysis
@@ -173,28 +173,10 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         result: analysisResult
       };
 
-      set(state => {
-        // Calculate new total and classification counts
-        const newTotalAnalyzed = state.totalAnalyzed + 1;
-        const newClassificationCounts = {
-          ...state.classificationCounts,
-          [analysisResult.classification.toLowerCase()]: state.classificationCounts[analysisResult.classification.toLowerCase() as keyof typeof state.classificationCounts] + 1
-        };
-
-        // Calculate new average confidence
-        const newAverageConfidence = (
-          (state.averageConfidence * state.totalAnalyzed + analysisResult.confidence) / 
-          newTotalAnalyzed
-        );
-
-        return {
-          results: [analysisResult, ...state.results],
-          uploadedFiles: [historyEntry, ...state.uploadedFiles],
-          totalAnalyzed: newTotalAnalyzed,
-          classificationCounts: newClassificationCounts,
-          averageConfidence: newAverageConfidence
-        };
-      });
+      // Add the new analysis to history
+      set(state => ({
+        uploadedFiles: [historyEntry, ...state.uploadedFiles]
+      }));
 
       return analysisResult;
     } catch (error) {
@@ -202,7 +184,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         error,
         message: error instanceof Error ? error.message : 'Unknown error'
       });
-      set({ error: error instanceof Error ? error.message : 'Failed to analyze tweet' });
+      set({ error: error instanceof Error ? error.message : 'Failed to analyze tweet', isLoading: false });
       throw error;
     } finally {
       set({ isLoading: false });
