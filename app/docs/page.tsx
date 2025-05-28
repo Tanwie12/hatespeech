@@ -131,44 +131,44 @@ export default function DocumentationPage() {
       id: 'api',
       title: 'API Integration',
       icon: <Code className="h-5 w-5" />,
-      content: (
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-gray-900">API Documentation</h3>
-          <p className="text-gray-600">
-            Integrate HateSpeech Guard into your applications using our REST API.
-          </p>
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Endpoints:</h4>
-            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-              <div>
-                <h5 className="font-medium text-gray-900 mb-2">Analyze Single Text</h5>
-                <pre className="bg-gray-100 p-2 rounded text-sm">
-                  POST /api/analyze{'\n'}
-                  Content-Type: application/json{'\n\n'}
-                  {'{'}
-                    &quot;tweet&quot;: &quot;text to analyze&quot;
-                  {'}'}
-                </pre>
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900 mb-2">Response Format:</h5>
-                <pre className="bg-gray-100 p-2 rounded text-sm">
-                  {'{'}
-                    &quot;success&quot;: true,
-                    &quot;data&quot;: {'{'}
-                      &quot;tweet&quot;: {'{'}
-                        &quot;tweet&quot;: &quot;original text&quot;,
-                        &quot;label&quot;: &quot;classification&quot;,
-                        &quot;score&quot;: &quot;confidence&quot;
-                      {'}'}
-                    {'}'}
-                  {'}'}
-                </pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
+      // content: (
+      //   <div className="space-y-6">
+      //     <h3 className="text-xl font-semibold text-gray-900">API Documentation</h3>
+      //     <p className="text-gray-600">
+      //       Integrate HateSpeech Guard into your applications using our REST API.
+      //     </p>
+      //     <div className="space-y-4">
+      //       <h4 className="font-medium text-gray-900">Endpoints:</h4>
+      //       <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+      //         <div>
+      //           <h5 className="font-medium text-gray-900 mb-2">Analyze Single Text</h5>
+      //           <pre className="bg-gray-100 p-2 rounded text-sm">
+      //             POST /api/analyze{'\n'}
+      //             Content-Type: application/json{'\n\n'}
+      //             {'{'}
+      //               &quot;tweet&quot;: &quot;text to analyze&quot;
+      //             {'}'}
+      //           </pre>
+      //         </div>
+      //         <div>
+      //           <h5 className="font-medium text-gray-900 mb-2">Response Format:</h5>
+      //           <pre className="bg-gray-100 p-2 rounded text-sm">
+      //             {'{'}
+      //               &quot;success&quot;: true,
+      //               &quot;data&quot;: {'{'}
+      //                 &quot;tweet&quot;: {'{'}
+      //                   &quot;tweet&quot;: &quot;original text&quot;,
+      //                   &quot;label&quot;: &quot;classification&quot;,
+      //                   &quot;score&quot;: &quot;confidence&quot;
+      //                 {'}'}
+      //               {'}'}
+      //             {'}'}
+      //           </pre>
+      //         </div>
+      //       </div>
+      //     </div>
+      //   </div>
+      // )
     },
     {
       id: 'security',
