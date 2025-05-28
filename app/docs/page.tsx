@@ -1,20 +1,15 @@
-'use client';
-
-import { useState } from 'react';
+import Link from 'next/link';
 
 import { 
   BookOpen, 
   Upload, 
   BarChart2, 
   MessageSquare,
-  ChevronRight,
-  ChevronDown,
   Code,
   Shield,
 } from 'lucide-react';
 
 export default function DocumentationPage() {
-  const [activeSection, setActiveSection] = useState<string | null>('getting-started');
 
   const sections = [
     {
@@ -225,23 +220,14 @@ export default function DocumentationPage() {
             <div className="sticky top-8">
               <nav className="space-y-1">
                 {sections.map((section) => (
-                  <button
+                  <Link
                     key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
-                      activeSection === section.id
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    href={`/docs#${section.id}`}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100"
                   >
                     {section.icon}
                     <span>{section.title}</span>
-                    {activeSection === section.id ? (
-                      <ChevronDown className="h-4 w-4 ml-auto" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 ml-auto" />
-                    )}
-                  </button>
+                  </Link>
                 ))}
               </nav>
             </div>
@@ -250,7 +236,11 @@ export default function DocumentationPage() {
           {/* Content */}
           <div className="flex-1">
             <div className="bg-white rounded-lg shadow-sm border p-6">
-              {sections.find(s => s.id === activeSection)?.content}
+              {sections.map(section => (
+                <div key={section.id} id={section.id} className="scroll-mt-20">
+                  {section.content}
+                </div>
+              ))}
             </div>
           </div>
         </div>

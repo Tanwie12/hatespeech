@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Shield, Zap, BarChart2, FileText, RefreshCw, Lock } from 'lucide-react';
+import { ArrowRight, Shield, Zap, BarChart2, FileText, RefreshCw, Lock, Menu, X } from 'lucide-react';
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Navigation */}
@@ -13,9 +15,24 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-blue-600" />
-            <span className="text-xl font-semibold text-gray-900">HateSpeech Guard(FE21A316)</span>
+            <span className="text-xl font-semibold text-gray-900 sm:inline hidden">HateSpeech Guard(FE21A316)</span>
+            <span className="text-xl font-semibold text-gray-900 sm:hidden inline">HS Guard</span>
           </div>
-          <div className="flex items-center gap-4">
+          
+          {/* Mobile menu button */}
+          <button 
+            className="md:hidden flex items-center p-2 rounded-lg hover:bg-gray-100"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6 text-gray-600" />
+            ) : (
+              <Menu className="h-6 w-6 text-gray-600" />
+            )}
+          </button>
+
+          {/* Desktop navigation */}
+          <div className="hidden md:flex items-center gap-4">
             <Link href="/dashboard">
               <Button variant="ghost">Dashboard</Button>
             </Link>
@@ -24,6 +41,20 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-white">
+            <div className="container mx-auto px-4 py-2 flex flex-col gap-2">
+              <Link href="/dashboard" className="w-full">
+                <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
+              </Link>
+              <Link href="/data-input" className="w-full">
+                <Button className="w-full justify-start">Get Started</Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -136,9 +167,9 @@ export default function LandingPage() {
             <div>
               <h3 className="text-white font-semibold mb-4">Resources</h3>
               <ul className="space-y-2">
-                <li><a href="doc" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
+                <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">API Reference</Link></li>
+                <li><Link href="#" className="hover:text-white transition-colors">Support</Link></li>
               </ul>
             </div>
             <div>
