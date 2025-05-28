@@ -21,6 +21,7 @@ export default function Header() {
     { href: '/data-input', label: 'Data Input' },
     { href: '/analysis-results', label: 'Analysis Results' },
     { href: '/reports', label: 'Reports' },
+    { href: '/docs', label: 'Documentation' },
   ];
   
   return (
@@ -28,7 +29,7 @@ export default function Header() {
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <div className="flex items-center">
           <Link href="/" className="text-xl font-bold">
-            DataSense
+            HateSpeech Guard(FE21A316)
           </Link>
           
           {/* Desktop Navigation */}
