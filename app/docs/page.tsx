@@ -17,15 +17,15 @@ export default function DocumentationPage() {
       title: 'Getting Started',
       icon: <BookOpen className="h-5 w-5" />,
       content: (
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-gray-900">Welcome to HateSpeech Guard</h3>
-          <p className="text-gray-600">
+        <div className="space-y-4 sm:space-y-6">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Welcome to HateSpeech Guard</h3>
+          <p className="text-sm sm:text-base text-gray-600">
             HateSpeech Guard is an AI-powered platform designed to detect and analyze hate speech in text content.
             This documentation will guide you through using our platform effectively.
           </p>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Quick Start</h4>
-            <ol className="list-decimal list-inside space-y-2 text-blue-800">
+          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2 text-sm sm:text-base">Quick Start</h4>
+            <ol className="list-decimal list-inside space-y-1.5 sm:space-y-2 text-blue-800 text-sm sm:text-base">
               <li>Navigate to the Data Input page</li>
               <li>Enter text or upload a CSV file</li>
               <li>View results in the Dashboard</li>
@@ -201,10 +201,10 @@ export default function DocumentationPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4 sm:py-6">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
+          <div className="flex items-center gap-2 mb-1 sm:mb-2">
             <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Documentation</h1>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">Documentation</h1>
           </div>
           <p className="text-sm sm:text-base text-gray-600">
             Learn how to use HateSpeech Guard effectively
@@ -213,17 +213,17 @@ export default function DocumentationPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-4 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-3 sm:gap-6 lg:gap-8">
           {/* Sidebar */}
           <div className="lg:w-64 flex-shrink-0 order-2 lg:order-1">
-            <div className="sticky top-0 lg:top-8 bg-white/80 backdrop-blur-sm lg:bg-transparent lg:backdrop-blur-none z-10 py-2 -mx-4 px-4 lg:mx-0 lg:px-0 lg:py-0 border-b lg:border-0">
-              <nav className="flex lg:flex-col gap-2 lg:gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar">
+            <div className="sticky top-0 lg:top-8 bg-white/90 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none z-10 py-2 -mx-3 sm:-mx-4 px-3 sm:px-4 lg:mx-0 lg:px-0 lg:py-0 border-b lg:border-0">
+              <nav className="flex lg:flex-col gap-1.5 lg:gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-1 lg:pb-0">
                 {sections.map((section) => (
                   <Link
                     key={section.id}
                     href={`/docs#${section.id}`}
-                    className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 lg:w-full whitespace-nowrap"
+                    className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 lg:px-4 lg:py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 lg:w-full whitespace-nowrap"
                   >
                     {section.icon}
                     <span>{section.title}</span>
@@ -235,9 +235,13 @@ export default function DocumentationPage() {
 
           {/* Content */}
           <div className="flex-1 order-1 lg:order-2">
-            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 lg:p-6">
               {sections.map(section => (
-                <div key={section.id} id={section.id} className="scroll-mt-20">
+                <div 
+                  key={section.id} 
+                  id={section.id} 
+                  className="scroll-mt-16 sm:scroll-mt-20 mb-8 last:mb-0"
+                >
                   {section.content}
                 </div>
               ))}
