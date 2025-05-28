@@ -55,7 +55,7 @@ export default function DocumentationPage() {
             <ol className="list-decimal list-inside space-y-2 text-gray-600">
               <li>Go to the Data Input page</li>
               <li>Enter your text in the text area</li>
-              <li>Click "Analyze Text"</li>
+              <li>Click &quot;Analyze Text&quot;</li>
               <li>View the results showing classification and confidence score</li>
             </ol>
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -92,8 +92,8 @@ export default function DocumentationPage() {
               <h5 className="font-medium text-gray-900 mb-2">Example CSV Format:</h5>
               <pre className="bg-gray-100 p-2 rounded text-sm">
                 text{'\n'}
-                "This is the first entry"{'\n'}
-                "This is the second entry"
+                &quot;This is the first entry&quot;{'\n'}
+                &quot;This is the second entry&quot;
               </pre>
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function DocumentationPage() {
                   POST /api/analyze{'\n'}
                   Content-Type: application/json{'\n\n'}
                   {'{'}
-                    "tweet": "text to analyze"
+                    &quot;tweet&quot;: &quot;text to analyze&quot;
                   {'}'}
                 </pre>
               </div>
@@ -156,9 +156,9 @@ export default function DocumentationPage() {
                 <h5 className="font-medium text-gray-900 mb-2">Response Format:</h5>
                 <pre className="bg-gray-100 p-2 rounded text-sm">
                   {'{'}
-                    "success": true,
-                    "data": {'{'}
-                      "tweet": {'{'}
+                    &quot;success&quot;: true,
+                    &quot;data&quot;: {'{'}
+                      &quot;tweet&quot;: {'{'}
                         &quot;tweet&quot;: &quot;original text&quot;,
                         &quot;label&quot;: &quot;classification&quot;,
                         &quot;score&quot;: &quot;confidence&quot;
